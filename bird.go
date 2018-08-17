@@ -36,6 +36,14 @@ func NewBird(itemWeights []float64, usersToItems [][]int, itemsToUsers [][]int) 
 	return &b
 }
 
+func (b *Bird) setDepth(depth int) {
+	b.Depth = depth
+}
+
+func (b *Bird) setDraws(depth int) {
+	b.Draws = draws
+}
+
 // Process returns a slice of recommended items along with their referrer given
 // a query consisting of a slice of items with their respective weights.
 func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
