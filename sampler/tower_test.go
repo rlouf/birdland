@@ -196,6 +196,7 @@ func benchmarkTowerSamplerInit(numWeights int, b *testing.B) {
 	}
 }
 
+func BenchmarkTowerSamplerInit100(b *testing.B)     { benchmarkTowerSamplerInit(100, b) }
 func BenchmarkTowerSamplerInit1000(b *testing.B)    { benchmarkTowerSamplerInit(1000, b) }
 func BenchmarkTowerSamplerInit10000(b *testing.B)   { benchmarkTowerSamplerInit(10000, b) }
 func BenchmarkTowerSamplerInit100000(b *testing.B)  { benchmarkTowerSamplerInit(100000, b) }
@@ -215,8 +216,15 @@ func benchmarkTowerSamplerSampling(numWeights int, numSamples int, b *testing.B)
 	}
 }
 
-func BenchmarkTowerSamplerSampling1000(b *testing.B)  { benchmarkTowerSamplerSampling(10000, 1000, b) }
-func BenchmarkTowerSamplerSampling10000(b *testing.B) { benchmarkTowerSamplerSampling(10000, 10000, b) }
+func BenchmarkTowerSamplerSampling100(b *testing.B) {
+	benchmarkTowerSamplerSampling(10000, 100, b)
+}
+func BenchmarkTowerSamplerSampling1000(b *testing.B) {
+	benchmarkTowerSamplerSampling(10000, 1000, b)
+}
+func BenchmarkTowerSamplerSampling10000(b *testing.B) {
+	benchmarkTowerSamplerSampling(10000, 10000, b)
+}
 func BenchmarkTowerSamplerSampling100000(b *testing.B) {
 	benchmarkTowerSamplerSampling(10000, 100000, b)
 }

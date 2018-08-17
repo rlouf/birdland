@@ -176,6 +176,7 @@ func benchmarkAliasSamplerInit(numWeights int, b *testing.B) {
 	}
 }
 
+func BenchmarkAliasSamplerInit100(b *testing.B)     { benchmarkAliasSamplerInit(100, b) }
 func BenchmarkAliasSamplerInit1000(b *testing.B)    { benchmarkAliasSamplerInit(1000, b) }
 func BenchmarkAliasSamplerInit10000(b *testing.B)   { benchmarkAliasSamplerInit(10000, b) }
 func BenchmarkAliasSamplerInit100000(b *testing.B)  { benchmarkAliasSamplerInit(100000, b) }
@@ -195,8 +196,15 @@ func benchmarkAliasSamplerSampling(numWeights int, numSamples int, b *testing.B)
 	}
 }
 
-func BenchmarkAliasSamplerSampling1000(b *testing.B)  { benchmarkAliasSamplerSampling(10000, 1000, b) }
-func BenchmarkAliasSamplerSampling10000(b *testing.B) { benchmarkAliasSamplerSampling(10000, 10000, b) }
+func BenchmarkAliasSamplerSampling100(b *testing.B) {
+	benchmarkAliasSamplerSampling(10000, 100, b)
+}
+func BenchmarkAliasSamplerSampling1000(b *testing.B) {
+	benchmarkAliasSamplerSampling(10000, 1000, b)
+}
+func BenchmarkAliasSamplerSampling10000(b *testing.B) {
+	benchmarkAliasSamplerSampling(10000, 10000, b)
+}
 func BenchmarkAliasSamplerSampling100000(b *testing.B) {
 	benchmarkAliasSamplerSampling(10000, 100000, b)
 }
