@@ -148,8 +148,7 @@ func TestAccumulate(t *testing.T) {
 func TestSampling(t *testing.T) {
 	for _, ex := range towersampler_table {
 		r := rand.New(rand.NewSource(42))
-		ts := TowerSampler{}
-		err := ts.Init(r, ex.Weights)
+		ts, err := NewTowerSampler(r, ex.Weights)
 		if err != nil {
 			if ex.Valid {
 				t.Errorf("tower sampler: init: %s should not have raised an error, raised  %v instead", ex.Name, err)
@@ -188,11 +187,10 @@ func benchmarkTowerSamplerInit(numWeights int, b *testing.B) {
 	b.StopTimer()
 	weights := initWeightsForBenchmarks(numWeights)
 	r := rand.New(rand.NewSource(42))
-	ts := TowerSampler{}
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		_ = ts.Init(r, weights)
+		_, _ = NewTowerSampler(r, weights)
 	}
 }
 
@@ -207,8 +205,7 @@ func benchmarkTowerSamplerSampling(numWeights int, numSamples int, b *testing.B)
 	b.StopTimer()
 	weights := initWeightsForBenchmarks(numWeights)
 	r := rand.New(rand.NewSource(42))
-	ts := TowerSampler{}
-	_ = ts.Init(r, weights)
+	ts, _ := NewTowerSampler(r, weights)
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {

@@ -15,21 +15,22 @@ type TowerSampler struct {
 	Source        *rand.Rand
 }
 
-func (t *TowerSampler) Init(source *rand.Rand, weights []float64) error {
+func NewTowerSampler(source *rand.Rand, weights []float64) (*TowerSampler, error) {
 
 	if len(weights) == 0 {
-		return fmt.Errorf("weights is an empty slice")
+		return &TowerSampler{}, fmt.Errorf("weights is an empty slice")
 	}
 
 	cumulative, err := accumulate(weights)
 	if err != nil {
-		return errors.Wrap(err, "cannot initialize the tower sampler")
+		return &TowerSampler{}, errors.Wrap(err, "cannot initialize the tower sampler")
 	}
 
+	t := TowerSampler{}
 	t.CumulativeSum = cumulative
 	t.Source = source
 
-	return nil
+	return &t, nil
 }
 
 func (t *TowerSampler) Sample(numSamples int) []int {
