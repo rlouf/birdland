@@ -128,8 +128,7 @@ var aliassampler_table = []AliasSamplerCase{
 func TestAliasSampling(t *testing.T) {
 	for _, ex := range aliassampler_table {
 		r := rand.New(rand.NewSource(42))
-		ts := AliasSampler{}
-		err := ts.Init(r, ex.Weights)
+		ts, err := NewAliasSampler(r, ex.Weights)
 		if err != nil {
 			if ex.Valid {
 				t.Errorf("tower sampler: init: %s should not have raised an error, raised  %v instead", ex.Name, err)
@@ -168,11 +167,10 @@ func benchmarkAliasSamplerInit(numWeights int, b *testing.B) {
 	b.StopTimer()
 	weights := initWeightsForAliasBenchmarks(numWeights)
 	r := rand.New(rand.NewSource(42))
-	ts := AliasSampler{}
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		_ = ts.Init(r, weights)
+		_, _ = NewAliasSampler(r, weights)
 	}
 }
 
@@ -187,8 +185,7 @@ func benchmarkAliasSamplerSampling(numWeights int, numSamples int, b *testing.B)
 	b.StopTimer()
 	weights := initWeightsForAliasBenchmarks(numWeights)
 	r := rand.New(rand.NewSource(42))
-	ts := AliasSampler{}
-	_ = ts.Init(r, weights)
+	ts, _ := NewAliasSampler(r, weights)
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {

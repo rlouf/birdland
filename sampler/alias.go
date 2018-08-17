@@ -16,33 +16,33 @@ type AliasSampler struct {
 	Source           *rand.Rand
 }
 
-// Init initalizes the sampler
-func (t *AliasSampler) Init(source *rand.Rand, weights []float64) error {
+func NewAliasSampler(source *rand.Rand, weights []float64) (*AliasSampler, error) {
 
 	if len(weights) == 0 {
-		return fmt.Errorf("weights is an empty slice")
+		return &AliasSampler{}, fmt.Errorf("weights is an empty slice")
 	}
 
 	ProbabilityTable, AliasTable, err := VoseInitialization(weights)
 	if err != nil {
-		return errors.Wrap(err, "cannot initialize the alias sampler")
+		return &AliasSampler{}, errors.Wrap(err, "cannot initialize the alias sampler")
 	}
+
+	t := AliasSampler{}
 	t.ProbabilityTable = ProbabilityTable
 	t.AliasTable = AliasTable
 	t.Source = source
 
-	return nil
+	return &t, nil
 }
 
 // Sample generates a slice of items obtained by sampling the original distribution.
 func (t *AliasSampler) Sample(numSamples int) []int {
 	n := len(t.AliasTable)
-	samples := make([]int, numSamples)
-
 	if n == 0 {
-		return samples
+		return []int{}
 	}
 
+	samples := make([]int, numSamples)
 	for i := 0; i < numSamples; i++ {
 		k := t.Source.Intn(n)
 		toss := t.Source.Float64()
@@ -87,7 +87,7 @@ func VoseInitialization(weights []float64) ([]float64, []int, error) {
 		AliasTable[l] = g
 		ProbabilityTable[l] = normalizedWeights[l]
 
-		normalizedWeights[g] = (normalizedWeights[g] + normalizedWeights[l]) - 1
+		normalizedWeights[g] = (normalizedWeights[g] + normalizedWeights[l]) - 1.0
 		if normalizedWeights[g] < 1.0 {
 			small = append(small, g)
 		} else {
@@ -110,7 +110,6 @@ func VoseInitialization(weights []float64) ([]float64, []int, error) {
 // normalize prepares the weights for the algorithm's initialization.
 func normalize(weights []float64) ([]float64, error) {
 	var sum float64
-	n := len(weights)
 	for _, w := range weights {
 		if w < 0 {
 			return []float64{}, fmt.Errorf("found negative weight %v", w)
@@ -118,7 +117,8 @@ func normalize(weights []float64) ([]float64, error) {
 		sum += w
 	}
 
-	normalizedWeights := make([]float64, len(weights))
+	n := len(weights)
+	normalizedWeights := make([]float64, n)
 	for i, weight := range weights {
 		normalizedWeights[i] = float64(n) * weight / sum
 	}
