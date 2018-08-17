@@ -47,13 +47,13 @@ func (t *TowerSampler) Sample(numSamples int) []int {
 // the sum of all terms.
 func accumulate(weights []float64) ([]float64, error) {
 	var sum float64
-	cumulativeSum := make([]float64, 0)
-	for _, weight := range weights {
+	cumulativeSum := make([]float64, len(weights))
+	for i, weight := range weights {
 		if weight < 0 {
 			return nil, fmt.Errorf("negative weight: %g", weight)
 		}
 		sum += weight
-		cumulativeSum = append(cumulativeSum, sum)
+		cumulativeSum[i] = sum
 	}
 
 	if sum == 0 {
