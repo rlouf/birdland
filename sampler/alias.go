@@ -16,6 +16,7 @@ type AliasSampler struct {
 	Source           *rand.Rand
 }
 
+// Init initalizes the sampler
 func (t *AliasSampler) Init(source *rand.Rand, weights []float64) error {
 
 	if len(weights) == 0 {
@@ -33,6 +34,7 @@ func (t *AliasSampler) Init(source *rand.Rand, weights []float64) error {
 	return nil
 }
 
+// Sample generates a slice of items obtained by sampling the original distribution.
 func (t *AliasSampler) Sample(numSamples int) []int {
 	n := len(t.AliasTable)
 	samples := make([]int, numSamples)
@@ -54,10 +56,10 @@ func (t *AliasSampler) Sample(numSamples int) []int {
 	return samples
 }
 
-// VoseInitialization initialises the probability and alias tables of the alias table
-// Vose's method. Vose's method runs in O(n) and is more numerically stable than
-// alternatives.
-// See http://www.keithschwarz.com/darts-dice-coins/ for more details.
+// VoseInitialization initialises the probability and alias tables using Vose's
+// method. Vose's method runs in O(n) and is more numerically stable than
+// alternatives. See http://www.keithschwarz.com/darts-dice-coins/ for more
+// details.
 func VoseInitialization(weights []float64) ([]float64, []int, error) {
 
 	normalizedWeights, err := normalize(weights)
@@ -65,8 +67,8 @@ func VoseInitialization(weights []float64) ([]float64, []int, error) {
 		return []float64{}, []int{}, errors.Wrap(err, "cannot normalize input weights")
 	}
 
-	small := make([]int, 0)
-	large := make([]int, 0)
+	small := make([]int, 0, len(normalizedWeights))
+	large := make([]int, 0, len(normalizedWeights))
 	for i, w := range normalizedWeights {
 		if w < 1.0 {
 			small = append(small, i)
@@ -117,8 +119,7 @@ func normalize(weights []float64) ([]float64, error) {
 	}
 
 	normalizedWeights := make([]float64, len(weights))
-	copy(normalizedWeights, weights)
-	for i, weight := range normalizedWeights {
+	for i, weight := range weights {
 		normalizedWeights[i] = float64(n) * weight / sum
 	}
 
