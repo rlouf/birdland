@@ -23,7 +23,9 @@ type Bird struct {
 	Depth        int
 }
 
-func NewBird(itemWeights []float64, usersToItems [][]int, itemsToUsers [][]int) *Bird {
+// NewBird creates a new bird
+// TODO(remi) check the validity of the input pre-initialization
+func NewBird(itemWeights []float64, usersToItems [][]int, itemsToUsers [][]int, options ...func(*Bird) error) (*Bird, error) {
 	b := Bird{
 		Depth:        1,
 		Draws:        1000,
@@ -32,16 +34,43 @@ func NewBird(itemWeights []float64, usersToItems [][]int, itemsToUsers [][]int) 
 		UsersToItems: usersToItems,
 		ItemsToUsers: itemsToUsers,
 	}
+
+	for _, option := range options {
+		err := option(&b)
+		if err != nil {
+			return &b, errors.Wrap(err, "cannot initialize Bird")
+		}
+	}
 	log.Printf("initialized Bird with %d draws and depth %d", b.Draws, b.Depth)
-	return &b
+	return &b, nil
 }
 
-func (b *Bird) setDepth(depth int) {
+func Depth(depth int) func(*Bird) error {
+	return func(t *Bird) error {
+		return t.setDepth(depth)
+	}
+}
+
+func Draws(draws int) func(*Bird) error {
+	return func(t *Bird) error {
+		return t.setDraws(draws)
+	}
+}
+
+func (b *Bird) setDepth(depth int) error {
+	if depth < 1 {
+		return errors.New("the depth needs to be greater than 1")
+	}
 	b.Depth = depth
+	return nil
 }
 
-func (b *Bird) setDraws(depth int) {
+func (b *Bird) setDraws(draws int) error {
+	if draws < 1 {
+		return errors.New("you need to set at least one draw")
+	}
 	b.Draws = draws
+	return nil
 }
 
 // Process returns a slice of recommended items along with their referrer given

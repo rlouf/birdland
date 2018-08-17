@@ -1,6 +1,7 @@
 package birdland
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -46,7 +47,10 @@ type StepCase struct {
 
 func TestSampleItem(t *testing.T) {
 	for _, ex := range sampleitem_table {
-		b := NewBird(ex.ItemWeights, nil, nil)
+		b, err := NewBird(ex.ItemWeights, nil, nil)
+		if err != nil {
+			panic(fmt.Sprintf("%s: Bird initialization raised an error but shouldn't have. Check your test case", ex.Name))
+		}
 		sampledItem, err := b.SampleItem(ex.FromItems)
 		if err != nil {
 			t.Errorf("SampleItem: '%s': unexpected error %v", ex.Name, err)
@@ -68,7 +72,7 @@ func benchmarkSampleItem(numItems, numFrom int, b *testing.B) {
 	for i := 0; i < numItems; i++ {
 		itemWeights[i] = 10 * rand.Float64()
 	}
-	bird := NewBird(itemWeights, nil, nil)
+	bird, _ := NewBird(itemWeights, nil, nil)
 
 	fromItems := make([]int, numFrom)
 	for i := 0; i < numFrom; i++ {
@@ -109,7 +113,10 @@ func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	for i := 0; i < numItems; i++ {
 		itemsWeights[i] = 10 * rand.Float64()
 	}
-	bird := NewBird(itemsWeights, nil, nil)
+	bird, err := NewBird(itemsWeights, nil, nil)
+	if err != nil {
+		panic("BenchmarkSampleItems: Bird initialization raised an error but shouldn't have. Check your test case")
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -155,7 +162,10 @@ func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
 	for i := 0; i < numItems; i++ {
 		itemWeights[i] = 10 * rand.Float64()
 	}
-	bird := NewBird(itemWeights, usersToItems, itemsToUsers)
+	bird, err := NewBird(itemWeights, usersToItems, itemsToUsers)
+	if err != nil {
+		panic("BenchmarkStep: Bird initialization raised an error but shouldn't have. Check your test case")
+	}
 
 	query := make([]int, querySize)
 	for i := 0; i < querySize; i++ {

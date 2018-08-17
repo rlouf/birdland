@@ -22,7 +22,7 @@ artistWeights := make([]float64, numArtists} // For instance the inverse popular
 usersToArtists := make([][]int) // For each user, the artists they listened to (liked, followed, etc.)
 artistsToUsers := make([][]int) // For each artist, the users who listened to (liked, followed, etc.) them.
 
-bird := birdland.NewBird(artistWeights, usersToArtists, artistsToUsers)
+bird, err := birdland.NewBird(artistWeights, usersToArtists, artistsToUsers)
 ```
 
 which initializes the recommender. The recommender processes a query---a list of (artist, weight) pairs---and
@@ -86,7 +86,7 @@ usersToArtists := make([][]int) // For each user, the artists they listened to (
 artistsToUsers := make([][]int) // For each artist, the users who listened to (liked, followed, etc.) them.
 userAdjacency := make([][]int) // For each user, the use they follow
 
-flock := birdland.NewFlock(artistWeights, usersToArtists, artistsToUsers, userAdjacency)
+flock, err := birdland.NewFlock(artistWeights, usersToArtists, artistsToUsers, userAdjacency)
 ```
 
 which initializes the recommender. The recommender processes a query---a list of (artist, weight) pairs along
