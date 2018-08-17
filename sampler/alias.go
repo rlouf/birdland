@@ -22,14 +22,14 @@ func NewAliasSampler(source *rand.Rand, weights []float64) (*AliasSampler, error
 		return &AliasSampler{}, fmt.Errorf("weights is an empty slice")
 	}
 
-	ProbabilityTable, AliasTable, err := VoseInitialization(weights)
+	probabilityTable, aliasTable, err := VoseInitialization(weights)
 	if err != nil {
 		return &AliasSampler{}, errors.Wrap(err, "cannot initialize the alias sampler")
 	}
 
 	t := AliasSampler{}
-	t.ProbabilityTable = ProbabilityTable
-	t.AliasTable = AliasTable
+	t.ProbabilityTable = probabilityTable
+	t.AliasTable = aliasTable
 	t.Source = source
 
 	return &t, nil
@@ -64,7 +64,7 @@ func VoseInitialization(weights []float64) ([]float64, []int, error) {
 
 	normalizedWeights, err := normalize(weights)
 	if err != nil {
-		return []float64{}, []int{}, errors.Wrap(err, "cannot normalize input weights")
+		return nil, nil, errors.Wrap(err, "cannot normalize input weights")
 	}
 
 	small := make([]int, 0, len(normalizedWeights))
@@ -77,15 +77,15 @@ func VoseInitialization(weights []float64) ([]float64, []int, error) {
 		}
 	}
 
-	AliasTable := make([]int, len(weights))
-	ProbabilityTable := make([]float64, len(weights))
+	aliasTable := make([]int, len(weights))
+	probabilityTable := make([]float64, len(weights))
 	var g, l int
 	for (len(small) > 0) && (len(large) > 0) {
 		l, small = small[0], small[1:]
 		g, large = large[0], large[1:]
 
-		AliasTable[l] = g
-		ProbabilityTable[l] = normalizedWeights[l]
+		aliasTable[l] = g
+		probabilityTable[l] = normalizedWeights[l]
 
 		normalizedWeights[g] = (normalizedWeights[g] + normalizedWeights[l]) - 1.0
 		if normalizedWeights[g] < 1.0 {
@@ -97,14 +97,14 @@ func VoseInitialization(weights []float64) ([]float64, []int, error) {
 
 	for len(large) > 0 {
 		g, large = large[0], large[1:]
-		ProbabilityTable[g] = 1
+		probabilityTable[g] = 1
 	}
 	for len(small) > 0 {
 		l, small = small[0], small[1:]
-		ProbabilityTable[g] = 1
+		probabilityTable[g] = 1
 	}
 
-	return ProbabilityTable, AliasTable, nil
+	return probabilityTable, aliasTable, nil
 }
 
 // normalize prepares the weights for the algorithm's initialization.
@@ -112,7 +112,7 @@ func normalize(weights []float64) ([]float64, error) {
 	var sum float64
 	for _, w := range weights {
 		if w < 0 {
-			return []float64{}, fmt.Errorf("found negative weight %v", w)
+			return nil, fmt.Errorf("found negative weight %v", w)
 		}
 		sum += w
 	}
