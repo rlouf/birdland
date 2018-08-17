@@ -1,6 +1,12 @@
 # Birdland
 
-A famous Jazz club. Also a recommendation library.
+A famous Jazz club. Also a recommendation library. The library is composed of the following files:
+
+- `tower_sampler.go` implements the tower sampling algorithm to sample from a discrete distribution;
+- `alias_sampler.go` implements the alias sampling algorithm to sample from a discrete distribution;
+- `bird.go` contains the simple recommender engine;
+- `flock.go` contains the social recommender engine;
+- `recommend.go` contains the functions used to produce recommendations from the engines.
 
 
 ## Recommendation
@@ -53,11 +59,16 @@ recommendedUsers := bird.RecommendUsers(items, referrers)
 
 which produces an ordered `[]int` that contains the id of the recommended users. 
 
-## Note
+## Notes
 
 It would be possible to recommend music and other users based on a list of users along with weights by
 permutation of the word "user" and "artist" in the examples above.Think about how to wrap the code up so that
 it doesn't end being confusing.
+
+We can recommend music based on playlists by permutation of the word "user" by "playlist". That way, it is
+also be possible to suggest tracks/artists to complete a playlist.
+
+
 
 
 # Social recommendation (WIP)
