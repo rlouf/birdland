@@ -45,3 +45,29 @@ func RecommendMostVisited(items []int) []int {
 
 	return recommendedItems
 }
+
+// RecommendConsensus recommends the item by descending order of the number of
+// unique referrers. With the data currently available, it is only possible to
+// recommend items this way.
+func RecommendConsensus(items, referrers []int) []int {
+	mapUniqueReferrers := make(map[int]map[int]bool)
+	for i, item := range items {
+		if _, ok := mapUniqueReferrers[item]; !ok {
+			mapUniqueReferrers[item] = map[int]bool{}
+		}
+		mapUniqueReferrers[item][referrers[i]] = true
+	}
+
+	countUniqueReferrers := PairList{}
+	for item, referrersMap := range mapUniqueReferrers {
+		countUniqueReferrers = append(countUniqueReferrers, Pair{item, len(referrersMap)})
+	}
+
+	sort.Sort(sort.Reverse(countUniqueReferrers))
+	recommendedItems := make([]int, 0, len(items))
+	for _, pair := range countUniqueReferrers {
+		recommendedItems = append(recommendedItems, pair.Object)
+	}
+
+	return recommendedItems
+}
