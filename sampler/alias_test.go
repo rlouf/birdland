@@ -2,7 +2,6 @@ package sampler
 
 import (
 	"math/rand"
-
 	"testing"
 )
 
@@ -131,27 +130,34 @@ func TestAliasSampling(t *testing.T) {
 		ts, err := NewAliasSampler(r, ex.Weights)
 		if err != nil {
 			if ex.Valid {
-				t.Errorf("tower sampler: init: %s should not have raised an error, raised  %v instead", ex.Name, err)
+				t.Errorf(`tower sampler: init: %s should not have raised an error, 
+						raised  %v instead`, ex.Name, err)
 			}
 		} else {
 			if !ex.Valid {
-				t.Errorf("tower sampler: init: %s should have raised an error, got none instead", ex.Name)
+				t.Errorf(`tower sampler: init: %s should have raised an error,
+						got none instead`, ex.Name)
 			}
 		}
 
 		samples := ts.Sample(ex.NumSamples)
 		if len(samples) != ex.NumSamples {
-			t.Errorf("tower sampler: init: %s: expected %v samples, got %v instead", ex.Name, ex.NumSamples, len(samples))
+			t.Errorf(`tower sampler: init: %s: expected %v samples,
+					got %v instead`, ex.Name, ex.NumSamples, len(samples))
 			continue
 		}
 		for i, s := range samples {
 			if s != ex.Samples[i] {
-				t.Errorf("tower sampler: sample: %s does not return the correct slice: expected %v, got %v", ex.Name, ex.Samples, samples)
+				t.Errorf(`tower sampler: sample: %s does not return the correct slice:
+						expected %v, got %v`, ex.Name, ex.Samples, samples)
 				break
 			}
 		}
 	}
 }
+
+// Benchmarks
+// ////////////////////////////////////////////////////////////////////////////
 
 func initWeightsForAliasBenchmarks(numWeights int) []float64 {
 	weights := make([]float64, numWeights)

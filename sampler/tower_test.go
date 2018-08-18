@@ -2,7 +2,6 @@ package sampler
 
 import (
 	"math/rand"
-
 	"testing"
 )
 
@@ -130,16 +129,19 @@ func TestAccumulate(t *testing.T) {
 		cum, err := accumulate(ex.Values)
 		if err != nil {
 			if ex.Valid {
-				t.Errorf("accumulate: %s should not have raised an error, raised  %v instead", ex.Name, err)
+				t.Errorf(`accumulate: %s should not have raised an error,
+						raised  %v instead`, ex.Name, err)
 			}
 		} else {
 			if !ex.Valid {
-				t.Errorf("accumulate: %s should have raised an error, got none instead", ex.Name)
+				t.Errorf(`accumulate: %s should have raised an error,
+						got none instead`, ex.Name)
 			}
 		}
 		for i, c := range cum {
 			if c != ex.Acc[i] {
-				t.Errorf("accumulate: %s does not return the correct slice: expected %v, got %v", ex.Name, ex.Acc, cum)
+				t.Errorf(`accumulate: %s does not return the correct slice:
+						expected %v, got %v`, ex.Name, ex.Acc, cum)
 			}
 		}
 	}
@@ -151,27 +153,34 @@ func TestSampling(t *testing.T) {
 		ts, err := NewTowerSampler(r, ex.Weights)
 		if err != nil {
 			if ex.Valid {
-				t.Errorf("tower sampler: init: %s should not have raised an error, raised  %v instead", ex.Name, err)
+				t.Errorf(`tower sampler: init: %s should not have raised an error,
+						raised  %v instead`, ex.Name, err)
 			}
 		} else {
 			if !ex.Valid {
-				t.Errorf("tower sampler: init: %s should have raised an error, got none instead", ex.Name)
+				t.Errorf(`tower sampler: init: %s should have raised an error,
+						got none instead`, ex.Name)
 			}
 		}
 
 		samples := ts.Sample(ex.NumSamples)
 		if len(samples) != ex.NumSamples {
-			t.Errorf("tower sampler: init: %s: expected %v samples, got %v instead", ex.Name, ex.NumSamples, len(samples))
+			t.Errorf("tower sampler: init: %s: expected %v samples, got %v instead",
+				ex.Name, ex.NumSamples, len(samples))
 			continue
 		}
 		for i, s := range samples {
 			if s != ex.Samples[i] {
-				t.Errorf("tower sampler: sample: %s does not return the correct slice: expected %v, got %v", ex.Name, ex.Samples, samples)
+				t.Errorf(`tower sampler: sample: %s does not return the correct slice:
+						expected %v, got %v`, ex.Name, ex.Samples, samples)
 				continue
 			}
 		}
 	}
 }
+
+// Benchmarks
+// ////////////////////////////////////////////////////////////////////////////
 
 func initWeightsForBenchmarks(numWeights int) []float64 {
 	weights := make([]float64, numWeights)
