@@ -7,4 +7,4 @@ test:
 	go test $(GO_PKGS)
 
 bench:
-	go test -run=XXX -bench $(GO_PKGS)
+	go test -run=XXX -bench .
