@@ -100,29 +100,6 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	return items, referrers, nil
 }
 
-// Step transforms a slice of items into a slice of recommended items and a
-// slice containing the corresponding referrers.
-func (b *Bird) Step(items []int) ([]int, []int, error) {
-
-	referrers := make([]int, len(items))
-	for i, item := range items {
-		relatedUsers := b.ItemsToUsers[item]
-		referrers[i] = relatedUsers[b.Rand.Intn(len(relatedUsers))]
-	}
-
-	var err error
-	newItems := make([]int, len(items))
-	for j, user := range referrers {
-		relatedItems := b.UsersToItems[user]
-		newItems[j], err = b.SampleItem(relatedItems)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot perform a processing step")
-		}
-	}
-
-	return newItems, referrers, nil
-}
-
 // sampleItemsFromQuery takes a slice of queries and returns a list of items
 // that have been sampled according to their respective weights as given by the
 // weights in the query and the general item weight.
@@ -145,6 +122,29 @@ func (b *Bird) SampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 
 	return sampledItems, nil
+}
+
+// Step transforms a slice of items into a slice of recommended items and a
+// slice containing the corresponding referrers.
+func (b *Bird) Step(items []int) ([]int, []int, error) {
+
+	referrers := make([]int, len(items))
+	for i, item := range items {
+		relatedUsers := b.ItemsToUsers[item]
+		referrers[i] = relatedUsers[b.Rand.Intn(len(relatedUsers))]
+	}
+
+	var err error
+	newItems := make([]int, len(items))
+	for j, user := range referrers {
+		relatedItems := b.UsersToItems[user]
+		newItems[j], err = b.SampleItem(relatedItems)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "cannot perform a processing step")
+		}
+	}
+
+	return newItems, referrers, nil
 }
 
 // sampleItem returns an item id sampled from a list of items.
