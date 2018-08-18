@@ -21,47 +21,29 @@ var sampleitem_table = []SampleItemCase{
 		Name:         "Uniform weights",
 		ItemWeights:  []float64{1, 1, 1, 1, 1, 1},
 		FromItems:    []int{3, 2, 1, 4, 5},
-		ExpectedItem: 3,
+		ExpectedItem: 2,
 		Valid:        true,
 	},
-}
-
-type SampleItemsFromQueryCase struct {
-	Name          string
-	ItemWeights   []float64
-	Query         []QueryItem
-	ExpectedItems []int
-	Valid         bool
-}
-
-type StepCase struct {
-	ItemWeights       []float64
-	Draws             int
-	UsersToItems      [][]int
-	ItemsToUsers      [][]int
-	Name              string
-	ExpectedItems     []int
-	ExpectedReferrers []int
-	Valid             bool
 }
 
 func TestSampleItem(t *testing.T) {
 	for _, ex := range sampleitem_table {
 		b, err := NewBird(ex.ItemWeights, nil, nil)
 		if err != nil {
-			panic(fmt.Sprintf("%s: Bird initialization raised an error but shouldn't have. Check your test case", ex.Name))
+			panic(fmt.Sprintf(`%s: Bird initialization raised an error 
+							but shouldn't have. Check your test case`, ex.Name))
 		}
 		sampledItem, err := b.SampleItem(ex.FromItems)
 		if err != nil {
 			t.Errorf("SampleItem: '%s': unexpected error %v", ex.Name, err)
 		}
 		if sampledItem != ex.ExpectedItem {
-			t.Errorf("SampleItem: '%s': expected %d, got %d", ex.Name, sampledItem, ex.ExpectedItem)
+			t.Errorf("SampleItem: '%s': expected %d, got %d", ex.Name, ex.ExpectedItem, sampledItem)
 		}
 	}
 }
 
-// Benchmark for sampling a single item
+// Sampling a single item
 // ////////////////////////////////////////////////////////////////////////////
 
 func benchmarkSampleItem(numItems, numFrom int, b *testing.B) {
@@ -94,7 +76,8 @@ func BenchmarkSampleItem1000000Items10From(b *testing.B)   { benchmarkSampleItem
 func BenchmarkSampleItem2000000Items100From(b *testing.B)  { benchmarkSampleItem(2000000, 100, b) } // 2M on Spotify
 func BenchmarkSampleItem2000000Items10From(b *testing.B)   { benchmarkSampleItem(2000000, 10, b) }
 
-// Benchmark for sampling X items from an incoming query
+// Sampling X items from the incoming query
+// ////////////////////////////////////////////////////////////////////////////
 
 func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	log.SetFlags(0) // don't let logs pollute the benchmarks
@@ -115,7 +98,8 @@ func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	}
 	bird, err := NewBird(itemsWeights, nil, nil)
 	if err != nil {
-		panic("BenchmarkSampleItems: Bird initialization raised an error but shouldn't have. Check your test case")
+		panic(`BenchmarkSampleItems: Bird initialization raised an error 
+			but shouldn't have. Check your test case`)
 	}
 
 	b.ResetTimer()
@@ -127,14 +111,16 @@ func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 func BenchmarkSampleItemsFormQuery10Query2000000Items(b *testing.B) {
 	benchmarkSampleItemsFromQuery(10, 2000000, b)
 }
+
 func BenchmarkSampleItemsFormQuery100Query2000000Items(b *testing.B) {
 	benchmarkSampleItemsFromQuery(100, 2000000, b)
 }
+
 func BenchmarkSampleItemsFormQuery1000Query2000000Items(b *testing.B) {
 	benchmarkSampleItemsFromQuery(1000, 2000000, b)
 }
 
-// Benchmark one step of the recommendation process with random init
+// One step of the recommendation process with random init
 // ////////////////////////////////////////////////////////////////////////////
 
 func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
@@ -164,7 +150,8 @@ func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
 	}
 	bird, err := NewBird(itemWeights, usersToItems, itemsToUsers)
 	if err != nil {
-		panic("BenchmarkStep: Bird initialization raised an error but shouldn't have. Check your test case")
+		panic(`BenchmarkStep: Bird initialization raised an error
+			but shouldn't have. Check your test case`)
 	}
 
 	query := make([]int, querySize)
@@ -178,7 +165,9 @@ func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
 	}
 }
 
-func BenchmarkStep2000000Items1000Users100Query(b *testing.B) { benchmarkStep(100, 1000, 2000000, b) }
+func BenchmarkStep2000000Items1000Users100Query(b *testing.B) {
+	benchmarkStep(100, 1000, 2000000, b)
+}
 func BenchmarkStep2000000Items100000Users100Query(b *testing.B) {
 	benchmarkStep(100, 100000, 2000000, b)
 }
@@ -203,5 +192,3 @@ func BenchmarkStep2000000Items1000000Users300000Query(b *testing.B) {
 func BenchmarkStep2000000Items1000000Users400000Query(b *testing.B) {
 	benchmarkStep(400000, 1000000, 2000000, b)
 }
-
-func benchmarkBird(b *testing.B) {}
