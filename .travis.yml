@@ -1,0 +1,12 @@
+language: go
+go:
+    1.10.x
+
+install:
+    - go get github.com/Masterminds/glide
+    - glide install
+
+script:
+    - make vet
+    - make test
+    - make bench
