@@ -50,6 +50,11 @@ func RecommendMostVisited(items []int) []int {
 // unique referrers. With the data currently available, it is only possible to
 // recommend items this way.
 func RecommendConsensus(items, referrers []int) []int {
+
+	if len(items) != len(referrers) {
+		panic("items and referrers do not have the same number of elements")
+	}
+
 	mapUniqueReferrers := make(map[int]map[int]bool)
 	for i, item := range items {
 		if _, ok := mapUniqueReferrers[item]; !ok {
