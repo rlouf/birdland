@@ -15,24 +15,34 @@ type QueryItem struct {
 }
 
 type Bird struct {
-	ItemWeights  []float64
-	UsersToItems [][]int
-	ItemsToUsers [][]int
-	Rand         *rand.Rand
-	Draws        int
-	Depth        int
+	ItemWeights       []float64
+	UsersToItems      [][]int
+	ItemsToUsers      [][]int
+	UserItemsSamplers []sampler.AliasSampler
+	Rand              *rand.Rand
+	Draws             int
+	Depth             int
 }
 
 // NewBird creates a new bird
 // TODO(remi) check the validity of the input pre-initialization
 func NewBird(itemWeights []float64, usersToItems [][]int, itemsToUsers [][]int, options ...func(*Bird) error) (*Bird, error) {
+
+	randSource := rand.New(rand.NewSource(42))
+
+	userItemsSampler, err := initUserItemsSamplers(randSource, itemWeights, usersToItems)
+	if err != nil {
+		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
+	}
+
 	b := Bird{
-		Depth:        1,
-		Draws:        1000,
-		Rand:         rand.New(rand.NewSource(42)),
-		ItemWeights:  itemWeights,
-		UsersToItems: usersToItems,
-		ItemsToUsers: itemsToUsers,
+		Depth:             1,
+		Draws:             1000,
+		Rand:              randSource,
+		ItemWeights:       itemWeights,
+		UsersToItems:      usersToItems,
+		ItemsToUsers:      itemsToUsers,
+		UserItemsSamplers: userItemsSampler,
 	}
 
 	for _, option := range options {
@@ -42,6 +52,7 @@ func NewBird(itemWeights []float64, usersToItems [][]int, itemsToUsers [][]int, 
 		}
 	}
 	log.Printf("initialized Bird with %d draws and depth %d", b.Draws, b.Depth)
+
 	return &b, nil
 }
 
@@ -137,8 +148,7 @@ func (b *Bird) Step(items []int) ([]int, []int, error) {
 	var err error
 	newItems := make([]int, len(items))
 	for j, user := range referrers {
-		relatedItems := b.UsersToItems[user]
-		newItems[j], err = b.SampleItem(relatedItems)
+		newItems[j], err = b.SampleItem(user)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "cannot perform a processing step")
 		}
@@ -148,17 +158,31 @@ func (b *Bird) Step(items []int) ([]int, []int, error) {
 }
 
 // sampleItem returns an item id sampled from a list of items.
-func (b *Bird) SampleItem(from []int) (int, error) {
-	weights := make([]float64, len(from))
-	for i, f := range from {
-		weights[i] = b.ItemWeights[f]
-	}
-
-	s, err := sampler.NewTowerSampler(b.Rand, weights) // 50% faster than Alias Sampler
-	if err != nil {
-		return 0, errors.Wrap(err, "cannot sample an item")
-	}
-	sampledItem := from[s.Sample(1)[0]]
+func (b *Bird) SampleItem(user int) (int, error) {
+	s := b.UserItemsSamplers[user]
+	sampledItem := b.UsersToItems[user][s.Sample(1)[0]]
 
 	return sampledItem, nil
+}
+
+// initUserItemsSamplers initializes the samplers used to sample from the items
+// a given user has interacted with.
+func initUserItemsSamplers(randSource *rand.Rand, itemWeights []float64, userToItems [][]int) ([]sampler.AliasSampler, error) {
+	userItemsSamplers := make([]sampler.AliasSampler, len(userToItems))
+	for i, userItems := range userToItems {
+
+		weights := make([]float64, len(userItems))
+		for j, item := range userItems {
+			weights[j] = itemWeights[item]
+		}
+
+		userItemsSampler, err := sampler.NewAliasSampler(randSource, weights)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not initialiaze the probability and alias tables")
+		}
+
+		userItemsSamplers[i] = *userItemsSampler
+	}
+
+	return userItemsSamplers, nil
 }
