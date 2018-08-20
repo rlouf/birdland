@@ -178,7 +178,7 @@ func initUserItemsSamplers(randSource *rand.Rand, itemWeights []float64, userToI
 
 		userItemsSampler, err := sampler.NewAliasSampler(randSource, weights)
 		if err != nil {
-			return nil, errors.Wrap(err, "could not initialiaze the probability and alias tables")
+			return nil, errors.Wrap(err, "could not initialize the probability and alias tables")
 		}
 
 		userItemsSamplers[i] = *userItemsSampler
