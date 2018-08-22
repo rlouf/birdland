@@ -104,12 +104,11 @@ var init_table = []InitCase{
 func TestInitialization(t *testing.T) {
 	for _, ex := range init_table {
 		_, err := NewBird(ex.ItemWeights, ex.UsersToItems, ex.ItemsToUsers, Draws(ex.Draws), Depth(ex.Depth))
-		if err != nil {
-			if ex.Valid {
-				t.Errorf("Initialization: %s: Bird initialization should have raised "+
-					"an error but did not", ex.Name)
-			}
-		} else {
+		if err != nil && ex.Valid {
+			t.Errorf("Initialization: %s: Bird initialization should have raised "+
+				"an error but did not", ex.Name)
+		}
+		if err == nil && !ex.Valid {
 			if !ex.Valid {
 				t.Errorf("Initialization: %s: Bird initialization should not have raised "+
 					"an error but did", ex.Name)

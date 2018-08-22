@@ -127,16 +127,13 @@ var towersampler_table = []TowerSamplerCase{
 func TestAccumulate(t *testing.T) {
 	for _, ex := range accumulate_table {
 		cum, err := accumulate(ex.Values)
-		if err != nil {
-			if ex.Valid {
-				t.Errorf(`accumulate: %s should not have raised an error,
+		if err != nil && ex.Valid {
+			t.Errorf(`accumulate: %s should not have raised an error,
 						raised  %v instead`, ex.Name, err)
-			}
-		} else {
-			if !ex.Valid {
-				t.Errorf(`accumulate: %s should have raised an error,
+		}
+		if err == nil && !ex.Valid {
+			t.Errorf(`accumulate: %s should have raised an error,
 						got none instead`, ex.Name)
-			}
 		}
 		for i, c := range cum {
 			if c != ex.Acc[i] {
@@ -151,16 +148,13 @@ func TestSampling(t *testing.T) {
 	for _, ex := range towersampler_table {
 		r := rand.New(rand.NewSource(42))
 		ts, err := NewTowerSampler(r, ex.Weights)
-		if err != nil {
-			if ex.Valid {
-				t.Errorf(`tower sampler: init: %s should not have raised an error,
+		if err != nil && ex.Valid {
+			t.Errorf(`tower sampler: init: %s should not have raised an error,
 						raised  %v instead`, ex.Name, err)
-			}
-		} else {
-			if !ex.Valid {
-				t.Errorf(`tower sampler: init: %s should have raised an error,
+		}
+		if err == nil && !ex.Valid {
+			t.Errorf(`tower sampler: init: %s should have raised an error,
 						got none instead`, ex.Name)
-			}
 		}
 
 		samples := ts.Sample(ex.NumSamples)

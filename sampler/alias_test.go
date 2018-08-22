@@ -128,16 +128,13 @@ func TestAliasSampling(t *testing.T) {
 	for _, ex := range aliassampler_table {
 		r := rand.New(rand.NewSource(42))
 		ts, err := NewAliasSampler(r, ex.Weights)
-		if err != nil {
-			if ex.Valid {
-				t.Errorf(`tower sampler: init: %s should not have raised an error, 
+		if err != nil && ex.Valid {
+			t.Errorf(`tower sampler: init: %s should not have raised an error, 
 						raised  %v instead`, ex.Name, err)
-			}
-		} else {
-			if !ex.Valid {
-				t.Errorf(`tower sampler: init: %s should have raised an error,
+		}
+		if err == nil && !ex.Valid {
+			t.Errorf(`tower sampler: init: %s should have raised an error,
 						got none instead`, ex.Name)
-			}
 		}
 
 		samples := ts.Sample(ex.NumSamples)
