@@ -34,4 +34,8 @@
 //
 // the visitedItems and referrers are then used to produce recommendations.
 // Note that Bird does not support empty queries.
+//
+// It is possible (although not desirable) that an item in the query refers to
+// an item with which no one has interacted. We ignore said for the rest of the
+// calculations.
 package birdland

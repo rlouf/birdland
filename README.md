@@ -20,9 +20,8 @@ import "github.com/vimies/birdland"
 
 artistWeights := make([]float64, numArtists} // For instance the inverse popularity of artist.
 usersToArtists := make([][]int) // For each user, the artists they listened to (liked, followed, etc.)
-artistsToUsers := make([][]int) // For each artist, the users who listened to (liked, followed, etc.) them.
 
-bird, err := birdland.NewBird(artistWeights, usersToArtists, artistsToUsers)
+bird, err := birdland.NewBird(artistWeights, usersToArtists)
 ```
 
 which initializes the recommender. The recommender processes a query---a list of (artist, weight) pairs---and
@@ -44,7 +43,7 @@ Using `items` and `referrers` we can recommend either artists or referrers.
 If we want to recommend artists based on the query
 
 ```golang
-recommendedArtists := bird.RecommendItems(items, referrers)
+recommendedArtists := birdland.RecommendItems(items, referrers)
 ```
 
 which produces an ordered `[]int` that contains the id of the recommended artists. 
@@ -54,7 +53,7 @@ which produces an ordered `[]int` that contains the id of the recommended artist
 If we want to recommend users based on the query
 
 ```golang
-recommendedUsers := bird.RecommendUsers(items, referrers)
+recommendedUsers := birdland.RecommendUsers(items, referrers)
 ```
 
 which produces an ordered `[]int` that contains the id of the recommended users. 

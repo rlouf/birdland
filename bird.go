@@ -29,12 +29,13 @@ type Bird struct {
 // changed by passing the functional options Draws() and Depth().
 func NewBird(itemWeights []float64,
 	usersToItems [][]int,
-	itemsToUsers [][]int,
 	options ...func(*Bird) error) (*Bird, error) {
+
+	start := time.Now()
 
 	randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	err := validateBirdInputs(itemWeights, usersToItems, itemsToUsers)
+	err := validateBirdInputs(itemWeights, usersToItems)
 	if err != nil {
 		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
 	}
@@ -43,6 +44,8 @@ func NewBird(itemWeights []float64,
 	if err != nil {
 		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
 	}
+
+	itemsToUsers := permuteAdjacencyList(len(itemWeights), usersToItems)
 
 	b := Bird{
 		Depth:             1,
@@ -60,7 +63,10 @@ func NewBird(itemWeights []float64,
 			return &b, errors.Wrap(err, "cannot initialize Bird")
 		}
 	}
-	log.Printf("initialized Bird with %d draws and depth %d", b.Draws, b.Depth)
+
+	initDuration := time.Since(start)
+	log.Printf("initialized Bird with %d draws and depth %d in %v",
+		b.Draws, b.Depth, initDuration)
 
 	return &b, nil
 }
@@ -129,8 +135,10 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 // listens, likes, shares, etc. The weight W_i used for sampleItemFromQuery is
 // the product of Q_i with the item's weight I_i provided when Bird is
 // initialized.
+//
 // sampleItemsFromQuery returns a slice of items that are the starting points
-// of the subsequent random walks.
+// of the subsequent random walks. If the query refers to an item that has no
+// record in ItemsToUsers, the item is ignored.
 func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 
 	weights := make([]float64, len(query))
@@ -145,8 +153,16 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 
 	sampledItems := make([]int, b.Draws)
-	for i, index := range s.Sample(b.Draws) {
-		sampledItems[i] = items[index]
+	for i, iid := range s.Sample(b.Draws) {
+		if len(b.ItemsToUsers[iid]) == 0 {
+			continue
+		}
+		sampledItems[i] = items[iid]
+	}
+
+	if len(sampledItems) == 0 {
+		return nil, errors.New("could not sample items from the query: " +
+			"check that the query refers to actual items.")
 	}
 
 	return sampledItems, nil
@@ -160,6 +176,9 @@ func (b *Bird) step(items []int) ([]int, []int, error) {
 	referrers := make([]int, len(items))
 	for i, item := range items {
 		relatedUsers := b.ItemsToUsers[item]
+		if len(relatedUsers) == 0 {
+			return nil, nil, errors.New("the item refers to an item no one has interacted with")
+		}
 		referrers[i] = relatedUsers[b.RandSource.Intn(len(relatedUsers))]
 	}
 
@@ -212,19 +231,13 @@ func initUserItemsSamplers(randSource *rand.Rand,
 // validateBirdInput checks the validity of the data fed to Bird.  It returns
 // an error when it identifies a discrepancy that could make the processing
 // algorithm crash.
-// TODO(remi) check that userToItems and itemsToUsers are consistent.
-func validateBirdInputs(itemWeights []float64,
-	usersToItems [][]int,
-	itemsToUsers [][]int) error {
+func validateBirdInputs(itemWeights []float64, usersToItems [][]int) error {
 
 	if len(itemWeights) == 0 {
 		return errors.New("empty slice of item weights")
 	}
 	if len(usersToItems) == 0 {
 		return errors.New("empty users to items adjacency table")
-	}
-	if len(itemsToUsers) == 0 {
-		return errors.New("empty items to users adjacency table")
 	}
 
 	// Check that there is a weight for each item present in adjacency tables.
@@ -237,12 +250,27 @@ func validateBirdInputs(itemWeights []float64,
 			}
 		}
 	}
-	if numItems < len(itemsToUsers) {
-		return errors.New("there are more items in ItemsToUsers than there are weights")
-	}
 	if numItems < m {
 		return errors.New("there are more items in UsersToItems than there are weights")
 	}
 
 	return nil
+}
+
+// permuteAdjacencyList transforms the UsersToItems adjacency list into the complementary
+// ItemsToUsers adjacency list.
+func permuteAdjacencyList(numItems int, usersToItems [][]int) [][]int {
+
+	itemsToUsers := make([][]int, numItems)
+	for iid := 0; iid < numItems; iid++ {
+		itemsToUsers[iid] = make([]int, 0)
+	}
+
+	for uid, userItems := range usersToItems {
+		for _, iid := range userItems {
+			itemsToUsers[iid] = append(itemsToUsers[iid], uid)
+		}
+	}
+
+	return itemsToUsers
 }
