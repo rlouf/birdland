@@ -98,6 +98,10 @@ func (b *Bird) setDraws(draws int) error {
 func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	start := time.Now()
 
+	if len(query) == 0 {
+		return nil, nil, errors.New("empty query")
+	}
+
 	stepItems, err := b.sampleItemsFromQuery(query)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "cannot process the query")

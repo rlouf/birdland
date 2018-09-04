@@ -33,4 +33,5 @@
 // 	visitedItems, referrers, err := charlie.Process(query)
 //
 // the visitedItems and referrers are then used to produce recommendations.
+// Note that Bird does not support empty queries.
 package birdland
