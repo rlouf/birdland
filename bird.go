@@ -24,6 +24,9 @@ type Bird struct {
 	Depth             int
 }
 
+// NewBird creates a new recommender from the input data. The number of draws
+// and depth of random walks are respectively set to 1000 and 1, but can be
+// changed by passing the functional options Draws() and Depth().
 func NewBird(itemWeights []float64,
 	usersToItems [][]int,
 	itemsToUsers [][]int,
@@ -90,8 +93,8 @@ func (b *Bird) setDraws(draws int) error {
 	return nil
 }
 
-// Process returns a slice of items that were visited during the random walk
-// along with their referrers.
+// Process returns a slice of items that were visited during the random walks
+// along with the users that referred these items.
 func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	start := time.Now()
 
@@ -117,9 +120,13 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	return items, referrers, nil
 }
 
-// sampleItemsFromQuery takes a slice of query items and returns a list of items
-// that have been sampled. The weight used for sampling is a combination of
-// the query weight, and the item weights set during Bird's initialization.
+// sampleItemsFromQuery takes a slice of query items and samples b.Draws items
+// from it. Each item i is assigned a weight Q_i in the query---the number of
+// listens, likes, shares, etc. The weight W_i used for sampleItemFromQuery is
+// the product of Q_i with the item's weight I_i provided when Bird is
+// initialized.
+// sampleItemsFromQuery returns a slice of items that are the starting points
+// of the subsequent random walks.
 func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 
 	weights := make([]float64, len(query))
@@ -141,8 +148,8 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	return sampledItems, nil
 }
 
-// step performs one random walk step of all incoming items.
-// It returns a slice of visited items along with the 'referrers', i.e. the
+// step performs one random walk step for each incoming item.
+// step returns a slice of visited items along with the 'referrers', i.e. the
 // users that were visited to reach these items.
 func (b *Bird) step(items []int) ([]int, []int, error) {
 
@@ -164,7 +171,7 @@ func (b *Bird) step(items []int) ([]int, []int, error) {
 	return newItems, referrers, nil
 }
 
-// sampleItem returns an item sampled from a user's collection
+// sampleItem returns an item sampled from a user's collection.
 func (b *Bird) sampleItem(user int) (int, error) {
 	s := b.UserItemsSamplers[user]
 	sampledItem := b.UsersToItems[user][s.Sample(1)[0]]
@@ -172,8 +179,9 @@ func (b *Bird) sampleItem(user int) (int, error) {
 	return sampledItem, nil
 }
 
-// initUserItemsSamplers initializes the samplers used to sample from the items
-// a given user has interacted with.
+// initUserItemsSamplers initializes the samplers used to sample from a user's
+// item collection. We use the alias sampling method which has proven sensibly
+// better in benchmarks.
 func initUserItemsSamplers(randSource *rand.Rand,
 	itemWeights []float64,
 	userToItems [][]int) ([]sampler.AliasSampler, error) {
@@ -197,15 +205,14 @@ func initUserItemsSamplers(randSource *rand.Rand,
 	return userItemsSamplers, nil
 }
 
-// validateBirdInput checks the validity of the data fed to Bird.
-// It returns an error when it identifies a discrepancy that could make the processing
+// validateBirdInput checks the validity of the data fed to Bird.  It returns
+// an error when it identifies a discrepancy that could make the processing
 // algorithm crash.
 // TODO(remi) check that userToItems and itemsToUsers are consistent.
 func validateBirdInputs(itemWeights []float64,
 	usersToItems [][]int,
 	itemsToUsers [][]int) error {
 
-	// Empty inputs
 	if len(itemWeights) == 0 {
 		return errors.New("empty slice of item weights")
 	}
@@ -216,7 +223,7 @@ func validateBirdInputs(itemWeights []float64,
 		return errors.New("empty items to users adjacency table")
 	}
 
-	// Number of items
+	// Check that there is a weight for each item present in adjacency tables.
 	numItems := len(itemWeights)
 	var m int
 	for _, userItems := range usersToItems {
