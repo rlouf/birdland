@@ -30,7 +30,7 @@ outputs a list of artists and their corresponding referrers.
 ```golang
 
 query := []QueryItem{} // QueryItem{Item int, Weight float64}
-items, referrers := bird.Process(query)
+items, referrers, err := bird.Process(query)
 ```
 
 The query, typically, will be a list of the artists a user has listened to along with the number of times they
