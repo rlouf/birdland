@@ -14,7 +14,7 @@
 // between each user and some of the items, and on a list of item weights. To
 // initialize Bird with sensible defaults, you can write:
 //
-//  charlie, err := NewBird(itemWeights, usersToItems)
+//  charlie, err := NewBird(NewBirdCfg(), itemWeights, usersToItems)
 // 	if err != nil {
 // 		log.Errorf("failed to initialize Bird")
 // 	}
@@ -23,7 +23,11 @@
 // random walks of depth `Depth`. It is possible to specify the values of these
 // variables with
 //
-//  charlie := NewBird(itemWeights, usersToItems, Draws(10000), Depth(5))
+//  cfg := NewBirdCfg()
+//  cfg.Draws = 10000
+//  cfg.Depth = 5
+//
+//  charlie := NewBird(cfg, itemWeights, usersToItems)
 // 	if err != nil {
 // 		log.Errorf("failed to initialize Bird")
 // 	}

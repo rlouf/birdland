@@ -83,7 +83,11 @@ var init_table = []InitCase{
 
 func TestInitialization(t *testing.T) {
 	for _, ex := range init_table {
-		_, err := NewBird(ex.ItemWeights, ex.UsersToItems, Draws(ex.Draws), Depth(ex.Depth))
+		cfg := NewBirdCfg()
+		cfg.Depth = ex.Depth
+		cfg.Draws = ex.Draws
+
+		_, err := NewBird(cfg, ex.ItemWeights, ex.UsersToItems)
 		if err != nil && ex.Valid {
 			t.Errorf("Initialization: %s: Bird initialization should not have raised "+
 				"an error but did: %v", ex.Name, err)
@@ -148,7 +152,8 @@ func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
 	for i := 0; i < numItems; i++ {
 		itemWeights[i] = 10 * rand.Float64()
 	}
-	bird, err := NewBird(itemWeights, usersToItems)
+
+	bird, err := NewBird(NewBirdCfg(), itemWeights, usersToItems)
 	if err != nil {
 		panic("BenchmarkStep: Bird initialization raised an error " +
 			"but shouldn't have. Check your test case")
@@ -243,7 +248,12 @@ func benchmarkProcess(numItems, numUsers, querySize, draws, depth int, b *testin
 	for i := 0; i < numItems; i++ {
 		itemWeights[i] = 10 * rand.Float64()
 	}
-	bird, err := NewBird(itemWeights, usersToItems, Draws(draws), Depth(depth))
+
+	cfg := NewBirdCfg()
+	cfg.Depth = depth
+	cfg.Draws = draws
+
+	bird, err := NewBird(cfg, itemWeights, usersToItems)
 	if err != nil {
 		panic("BenchmarkStep: Bird initialization raised an error " +
 			"but shouldn't have. Check your test case")
