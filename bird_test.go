@@ -1,8 +1,6 @@
 package birdland
 
 import (
-	"io/ioutil"
-	"log"
 	"math/rand"
 	"testing"
 )
@@ -98,9 +96,6 @@ func TestInitialization(t *testing.T) {
 }
 
 func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
-	log.SetFlags(0) // don't let logs pollute the benchmarks
-	log.SetOutput(ioutil.Discard)
-
 	query := make([]QueryItem, querySize)
 	for i := 0; i < querySize; i++ {
 		item := QueryItem{
@@ -138,9 +133,6 @@ func BenchmarkSampleItemsFormQuery1000Query2000000Items(b *testing.B) {
 }
 
 func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
-	log.SetFlags(0) // don't let logs pollute the benchmarks
-	log.SetOutput(ioutil.Discard)
-
 	usersToItems := make([][]int, numUsers)
 	for i := 0; i < numUsers; i++ {
 		num := 1 + rand.Intn(100) // +1 so that num != 0
@@ -230,9 +222,6 @@ func BenchmarkStep2000000Items1000000Users1000000Query(b *testing.B) {
 }
 
 func benchmarkProcess(numItems, numUsers, querySize, draws, depth int, b *testing.B) {
-	log.SetFlags(0) // don't let logs pollute the benchmarks
-	log.SetOutput(ioutil.Discard)
-
 	itemsToUsers := make([][]int, numItems)
 	for i := 0; i < numItems; i++ {
 		itemsToUsers[i] = []int{1}

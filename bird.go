@@ -1,7 +1,6 @@
 package birdland
 
 import (
-	"log"
 	"math/rand"
 	"time"
 
@@ -30,8 +29,6 @@ type Bird struct {
 func NewBird(itemWeights []float64,
 	usersToItems [][]int,
 	options ...func(*Bird) error) (*Bird, error) {
-
-	start := time.Now()
 
 	randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -63,10 +60,6 @@ func NewBird(itemWeights []float64,
 			return &b, errors.Wrap(err, "cannot initialize Bird")
 		}
 	}
-
-	initDuration := time.Since(start)
-	log.Printf("initialized Bird with %d draws and depth %d in %v",
-		b.Draws, b.Depth, initDuration)
 
 	return &b, nil
 }
@@ -102,8 +95,6 @@ func (b *Bird) setDraws(draws int) error {
 // Process returns a slice of items that were visited during the random walks
 // along with the users that referred these items.
 func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
-	start := time.Now()
-
 	if len(query) == 0 {
 		return nil, nil, errors.New("empty query")
 	}
@@ -123,9 +114,6 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 		items = append(items, stepItems...)
 		referrers = append(referrers, stepReferrers...)
 	}
-
-	elapsed := time.Since(start)
-	log.Printf("processed query containing %d items in %v", len(query), elapsed)
 
 	return items, referrers, nil
 }
