@@ -34,12 +34,12 @@ func NewBird(itemWeights []float64,
 
 	err := validateBirdInputs(itemWeights, usersToItems)
 	if err != nil {
-		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
+		return &Bird{}, errors.Wrap(err, "invalid input")
 	}
 
 	userItemsSampler, err := initUserItemsSamplers(randSource, itemWeights, usersToItems)
 	if err != nil {
-		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
+		return &Bird{}, errors.Wrap(err, "cannot initialize samplers")
 	}
 
 	itemsToUsers := permuteAdjacencyList(len(itemWeights), usersToItems)
@@ -57,7 +57,7 @@ func NewBird(itemWeights []float64,
 	for _, option := range options {
 		err := option(&b)
 		if err != nil {
-			return &b, errors.Wrap(err, "cannot initialize Bird")
+			return &b, errors.Wrap(err, "invalid option")
 		}
 	}
 
@@ -101,7 +101,7 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 
 	stepItems, err := b.sampleItemsFromQuery(query)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot process the query")
+		return nil, nil, errors.Wrap(err, "cannot sample items")
 	}
 
 	var items []int
@@ -109,7 +109,7 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	for d := 0; d < b.Depth; d++ {
 		stepItems, stepReferrers, err := b.step(stepItems)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot process the query")
+			return nil, nil, errors.Wrap(err, "cannot step through items")
 		}
 		items = append(items, stepItems...)
 		referrers = append(referrers, stepReferrers...)
@@ -137,7 +137,7 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 	s, err := sampler.NewAliasSampler(b.RandSource, weights)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot sample items from the query")
+		return nil, errors.Wrap(err, "cannot create sampler")
 	}
 
 	sampledItems := make([]int, b.Draws)
@@ -149,7 +149,7 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 
 	if len(sampledItems) == 0 {
-		return nil, errors.New("could not sample items from the query: " +
+		return nil, errors.New("no items left after sampling," +
 			"check that the query refers to actual items.")
 	}
 
@@ -175,7 +175,7 @@ func (b *Bird) step(items []int) ([]int, []int, error) {
 	for j, user := range referrers {
 		newItems[j], err = b.sampleItem(user)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot perform a processing step")
+			return nil, nil, errors.Wrap(err, "cannot sample item")
 		}
 	}
 
