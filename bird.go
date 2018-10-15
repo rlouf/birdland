@@ -14,8 +14,8 @@ type QueryItem struct {
 }
 
 type BirdCfg struct {
-	Depth int
-	Draws int
+	Depth int `yaml:"depth"`
+	Draws int `yaml:"draws"`
 }
 
 func NewBirdCfg() *BirdCfg {
