@@ -150,24 +150,20 @@ func (b *Bird) step(items []int) ([]int, []int, error) {
 		referrers[i] = relatedUsers[b.RandSource.Intn(len(relatedUsers))]
 	}
 
-	var err error
 	newItems := make([]int, len(items))
 	for j, user := range referrers {
-		newItems[j], err = b.sampleItem(user)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot sample item")
-		}
+		newItems[j] = b.sampleItem(user)
 	}
 
 	return newItems, referrers, nil
 }
 
 // sampleItem returns an item sampled from a user's collection.
-func (b *Bird) sampleItem(user int) (int, error) {
+func (b *Bird) sampleItem(user int) int {
 	s := b.UserItemsSamplers[user]
 	sampledItem := b.UsersToItems[user][s.Sample(1)[0]]
 
-	return sampledItem, nil
+	return sampledItem
 }
 
 // initUserItemsSamplers initializes the samplers used to sample from a user's
