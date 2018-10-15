@@ -13,40 +13,55 @@ type QueryItem struct {
 	Weight float64
 }
 
+type BirdCfg struct {
+	Depth int `yaml:"depth"`
+	Draws int `yaml:"draws"`
+}
+
+func NewBirdCfg() *BirdCfg {
+	cfg := BirdCfg{
+		Depth: 1,
+		Draws: 1000,
+	}
+
+	return &cfg
+}
+
 type Bird struct {
+	Cfg               *BirdCfg
 	ItemWeights       []float64
 	UsersToItems      [][]int
 	ItemsToUsers      [][]int
 	UserItemsSamplers []sampler.AliasSampler
 	RandSource        *rand.Rand
-	Draws             int
-	Depth             int
 }
 
-// NewBird creates a new recommender from the input data. The number of draws
-// and depth of random walks are respectively set to 1000 and 1, but can be
-// changed by passing the functional options Draws() and Depth().
-func NewBird(itemWeights []float64,
-	usersToItems [][]int,
-	options ...func(*Bird) error) (*Bird, error) {
+// NewBird creates a new recommender from input data.
+func NewBird(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int) (*Bird, error) {
+	if cfg.Depth < 1 {
+		return nil, errors.New("depth must be greater or equal to 1")
+	}
+
+	if cfg.Draws < 1 {
+		return nil, errors.New("number of draws must be greater or equal to 1")
+	}
 
 	randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	err := validateBirdInputs(itemWeights, usersToItems)
 	if err != nil {
-		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
+		return &Bird{}, errors.Wrap(err, "invalid input")
 	}
 
 	userItemsSampler, err := initUserItemsSamplers(randSource, itemWeights, usersToItems)
 	if err != nil {
-		return &Bird{}, errors.Wrap(err, "cannot initialize Bird")
+		return &Bird{}, errors.Wrap(err, "cannot initialize samplers")
 	}
 
 	itemsToUsers := permuteAdjacencyList(len(itemWeights), usersToItems)
 
 	b := Bird{
-		Depth:             1,
-		Draws:             1000,
+		Cfg:               cfg,
 		RandSource:        randSource,
 		ItemWeights:       itemWeights,
 		UsersToItems:      usersToItems,
@@ -54,42 +69,7 @@ func NewBird(itemWeights []float64,
 		UserItemsSamplers: userItemsSampler,
 	}
 
-	for _, option := range options {
-		err := option(&b)
-		if err != nil {
-			return &b, errors.Wrap(err, "cannot initialize Bird")
-		}
-	}
-
 	return &b, nil
-}
-
-func Depth(depth int) func(*Bird) error {
-	return func(t *Bird) error {
-		return t.setDepth(depth)
-	}
-}
-
-func Draws(draws int) func(*Bird) error {
-	return func(t *Bird) error {
-		return t.setDraws(draws)
-	}
-}
-
-func (b *Bird) setDepth(depth int) error {
-	if depth < 1 {
-		return errors.New("the depth needs to be at least 1")
-	}
-	b.Depth = depth
-	return nil
-}
-
-func (b *Bird) setDraws(draws int) error {
-	if draws < 1 {
-		return errors.New("the number of draws needs to be at least 1")
-	}
-	b.Draws = draws
-	return nil
 }
 
 // Process returns a slice of items that were visited during the random walks
@@ -101,15 +81,15 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 
 	stepItems, err := b.sampleItemsFromQuery(query)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot process the query")
+		return nil, nil, errors.Wrap(err, "cannot sample items")
 	}
 
 	var items []int
 	var referrers []int
-	for d := 0; d < b.Depth; d++ {
+	for d := 0; d < b.Cfg.Depth; d++ {
 		stepItems, stepReferrers, err := b.step(stepItems)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot process the query")
+			return nil, nil, errors.Wrap(err, "cannot step through items")
 		}
 		items = append(items, stepItems...)
 		referrers = append(referrers, stepReferrers...)
@@ -118,11 +98,11 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	return items, referrers, nil
 }
 
-// sampleItemsFromQuery takes a slice of query items and samples b.Draws items
-// from it. Each item i is assigned a weight Q_i in the query---the number of
-// listens, likes, shares, etc. The weight W_i used for sampleItemFromQuery is
-// the product of Q_i with the item's weight I_i provided when Bird is
-// initialized.
+// sampleItemsFromQuery takes a slice of query items and samples b.Cfg.Draws
+// items from it. Each item i is assigned a weight Q_i in the query---the
+// number of listens, likes, shares, etc. The weight W_i used for
+// sampleItemFromQuery is the product of Q_i with the item's weight I_i
+// provided when Bird is initialized.
 //
 // sampleItemsFromQuery returns a slice of items that are the starting points
 // of the subsequent random walks. If the query refers to an item that has no
@@ -137,11 +117,11 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 	s, err := sampler.NewAliasSampler(b.RandSource, weights)
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot sample items from the query")
+		return nil, errors.Wrap(err, "cannot create sampler")
 	}
 
-	sampledItems := make([]int, b.Draws)
-	for i, iid := range s.Sample(b.Draws) {
+	sampledItems := make([]int, b.Cfg.Draws)
+	for i, iid := range s.Sample(b.Cfg.Draws) {
 		if len(b.ItemsToUsers[iid]) == 0 {
 			continue
 		}
@@ -149,7 +129,7 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 
 	if len(sampledItems) == 0 {
-		return nil, errors.New("could not sample items from the query: " +
+		return nil, errors.New("no items left after sampling," +
 			"check that the query refers to actual items.")
 	}
 
@@ -170,24 +150,20 @@ func (b *Bird) step(items []int) ([]int, []int, error) {
 		referrers[i] = relatedUsers[b.RandSource.Intn(len(relatedUsers))]
 	}
 
-	var err error
 	newItems := make([]int, len(items))
 	for j, user := range referrers {
-		newItems[j], err = b.sampleItem(user)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "cannot perform a processing step")
-		}
+		newItems[j] = b.sampleItem(user)
 	}
 
 	return newItems, referrers, nil
 }
 
 // sampleItem returns an item sampled from a user's collection.
-func (b *Bird) sampleItem(user int) (int, error) {
+func (b *Bird) sampleItem(user int) int {
 	s := b.UserItemsSamplers[user]
 	sampledItem := b.UsersToItems[user][s.Sample(1)[0]]
 
-	return sampledItem, nil
+	return sampledItem
 }
 
 // initUserItemsSamplers initializes the samplers used to sample from a user's
