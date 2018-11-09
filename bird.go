@@ -214,7 +214,7 @@ func validateBirdInputs(itemWeights []float64, usersToItems [][]int) error {
 			}
 		}
 	}
-	if numItems < m {
+	if numItems <= m {
 		return errors.New("there are more items in UsersToItems than there are weights")
 	}
 
