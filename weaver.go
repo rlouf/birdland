@@ -134,7 +134,7 @@ func validateWeaverInputs(itemWeights []float64, usersToItems [][]int, socialCoe
 	}
 
 	if len(socialCoef) != len(usersToItems) {
-		return errors.New("there are more users in UsersToItems than in the social graph")
+		return errors.New("UsersToItems and the social graph don't contain the same number of users")
 	}
 
 	numUsers := len(socialCoef)
