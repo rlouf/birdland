@@ -66,7 +66,7 @@ var init_table = []InitCase{
 	{
 		Name:         "More items in adjacency tables that weight list",
 		ItemWeights:  []float64{0.1, 0.2, 0.4},
-		UsersToItems: [][]int{[]int{0, 2}, []int{4}},
+		UsersToItems: [][]int{[]int{0, 1}, []int{2, 3}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
