@@ -135,47 +135,6 @@ func TestWeaverInitialization(t *testing.T) {
 	}
 }
 
-func benchmarkWeaverSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
-	query := make([]QueryItem, querySize)
-	for i := 0; i < querySize; i++ {
-		item := QueryItem{
-			Item:   rand.Intn(numItems),
-			Weight: 10 * rand.Float64(),
-		}
-		query[i] = item
-	}
-
-	itemsWeights := make([]float64, numItems)
-	for i := 0; i < numItems; i++ {
-		itemsWeights[i] = 10 * rand.Float64()
-	}
-	socialCoef := make([]map[int]float64,0)
-	weaver := Weaver{
-		socialCoef,
-		&Bird{
-			ItemWeights: itemsWeights,
-			RandSource:  rand.New(rand.NewSource(42)),
-		},
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, _ = weaver.sampleItemsFromQuery(query)
-	}
-}
-
-func BenchmarkWeaverItemsFormQuery10Query2000000Items(b *testing.B) {
-	benchmarkWeaverSampleItemsFromQuery(10, 2000000, b)
-}
-
-func BenchmarkWeaverItemsFormQuery100Query2000000Items(b *testing.B) {
-	benchmarkWeaverSampleItemsFromQuery(100, 2000000, b)
-}
-
-func BenchmarkWeaverItemsFormQuery1000Query2000000Items(b *testing.B) {
-	benchmarkWeaverSampleItemsFromQuery(1000, 2000000, b)
-}
-
 func benchmarkWeaverStep(querySize, numUsers, numItems int, b *testing.B) {
 	usersToItems := make([][]int, numUsers)
 	for i := 0; i < numUsers; i++ {
