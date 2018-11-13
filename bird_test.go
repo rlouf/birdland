@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-type InitCase struct {
+type BirdInitCase struct {
 	Name         string
 	ItemWeights  []float64
 	UsersToItems [][]int
@@ -14,7 +14,7 @@ type InitCase struct {
 	Valid        bool
 }
 
-var init_table = []InitCase{
+var birdInitTable = []BirdInitCase{
 	{
 		Name:         "Zero Depth",
 		ItemWeights:  []float64{1, 1},
@@ -81,8 +81,8 @@ var init_table = []InitCase{
 	},
 }
 
-func TestInitialization(t *testing.T) {
-	for _, ex := range init_table {
+func TestBirdInitialization(t *testing.T) {
+	for _, ex := range birdInitTable {
 		cfg := NewBirdCfg()
 		cfg.Depth = ex.Depth
 		cfg.Draws = ex.Draws
@@ -99,8 +99,8 @@ func TestInitialization(t *testing.T) {
 	}
 }
 
-func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 
+func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	query := make([]QueryItem, querySize)
 	for i := 0; i < querySize; i++ {
 		item := QueryItem{
@@ -133,19 +133,19 @@ func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	}
 }
 
-func BenchmarkSampleItemsFormQuery10Query2000000Items(b *testing.B) {
-	benchmarkSampleItemsFromQuery(10, 2000000, b)
+func BenchmarkBirdSampleItemsFormQuery10Query2000000Items(b *testing.B) {
+	benchmarkBirdSampleItemsFromQuery(10, 2000000, b)
 }
 
-func BenchmarkSampleItemsFormQuery100Query2000000Items(b *testing.B) {
-	benchmarkSampleItemsFromQuery(100, 2000000, b)
+func BenchmarkBirdSampleItemsFormQuery100Query2000000Items(b *testing.B) {
+	benchmarkBirdSampleItemsFromQuery(100, 2000000, b)
 }
 
-func BenchmarkSampleItemsFormQuery1000Query2000000Items(b *testing.B) {
-	benchmarkSampleItemsFromQuery(1000, 2000000, b)
+func BenchmarkBirdSampleItemsFormQuery1000Query2000000Items(b *testing.B) {
+	benchmarkBirdSampleItemsFromQuery(1000, 2000000, b)
 }
 
-func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
+func benchmarkBirdStep(querySize, numUsers, numItems int, b *testing.B) {
 	usersToItems := make([][]int, numUsers)
 	for i := 0; i < numUsers; i++ {
 		num := 1 + rand.Intn(100) // +1 so that num != 0
@@ -164,7 +164,7 @@ func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
 
 	bird, err := NewBird(NewBirdCfg(), itemWeights, usersToItems)
 	if err != nil {
-		panic("BenchmarkStep: Bird initialization raised an error " +
+		panic("BenchmarkBirdStep: Bird initialization raised an error " +
 			"but shouldn't have. Check your test case")
 	}
 
@@ -179,63 +179,63 @@ func benchmarkStep(querySize, numUsers, numItems int, b *testing.B) {
 	}
 }
 
-func BenchmarkStep2000000Items1000Users100Query(b *testing.B) {
-	benchmarkStep(100, 1000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000Users100Query(b *testing.B) {
+	benchmarkBirdStep(100, 1000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items100000Users100Query(b *testing.B) {
-	benchmarkStep(100, 100000, 2000000, b)
+func BenchmarkBirdStep2000000Items100000Users100Query(b *testing.B) {
+	benchmarkBirdStep(100, 100000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users100Query(b *testing.B) {
-	benchmarkStep(100, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users100Query(b *testing.B) {
+	benchmarkBirdStep(100, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users1000Query(b *testing.B) {
-	benchmarkStep(1000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users1000Query(b *testing.B) {
+	benchmarkBirdStep(1000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users10000Query(b *testing.B) {
-	benchmarkStep(10000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users10000Query(b *testing.B) {
+	benchmarkBirdStep(10000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users100000Query(b *testing.B) {
-	benchmarkStep(100000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users100000Query(b *testing.B) {
+	benchmarkBirdStep(100000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users200000Query(b *testing.B) {
-	benchmarkStep(200000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users200000Query(b *testing.B) {
+	benchmarkBirdStep(200000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users300000Query(b *testing.B) {
-	benchmarkStep(300000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users300000Query(b *testing.B) {
+	benchmarkBirdStep(300000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users400000Query(b *testing.B) {
-	benchmarkStep(400000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users400000Query(b *testing.B) {
+	benchmarkBirdStep(400000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users600000Query(b *testing.B) {
-	benchmarkStep(600000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users600000Query(b *testing.B) {
+	benchmarkBirdStep(600000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users700000Query(b *testing.B) {
-	benchmarkStep(700000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users700000Query(b *testing.B) {
+	benchmarkBirdStep(700000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users800000Query(b *testing.B) {
-	benchmarkStep(800000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users800000Query(b *testing.B) {
+	benchmarkBirdStep(800000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users900000Query(b *testing.B) {
-	benchmarkStep(900000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users900000Query(b *testing.B) {
+	benchmarkBirdStep(900000, 1000000, 2000000, b)
 }
 
-func BenchmarkStep2000000Items1000000Users1000000Query(b *testing.B) {
-	benchmarkStep(1000000, 1000000, 2000000, b)
+func BenchmarkBirdStep2000000Items1000000Users1000000Query(b *testing.B) {
+	benchmarkBirdStep(1000000, 1000000, 2000000, b)
 }
 
-func benchmarkProcess(numItems, numUsers, querySize, draws, depth int, b *testing.B) {
+func benchmarkBirdProcess(numItems, numUsers, querySize, draws, depth int, b *testing.B) {
 	itemsToUsers := make([][]int, numItems)
 	for i := 0; i < numItems; i++ {
 		itemsToUsers[i] = []int{1}
@@ -264,7 +264,7 @@ func benchmarkProcess(numItems, numUsers, querySize, draws, depth int, b *testin
 
 	bird, err := NewBird(cfg, itemWeights, usersToItems)
 	if err != nil {
-		panic("BenchmarkStep: Bird initialization raised an error " +
+		panic("BenchmarkBirdStep: Bird initialization raised an error " +
 			"but shouldn't have. Check your test case")
 	}
 
@@ -281,56 +281,56 @@ func benchmarkProcess(numItems, numUsers, querySize, draws, depth int, b *testin
 }
 
 // Increase the numbers of users to 10M
-func BenchmarkProcess10KUsers(b *testing.B) {
-	benchmarkProcess(2000000, 10000, 100, 100, 1, b)
+func BenchmarkBirdProcess10KUsers(b *testing.B) {
+	benchmarkBirdProcess(2000000, 10000, 100, 100, 1, b)
 }
 
-func BenchmarkProcess100KUsers(b *testing.B) {
-	benchmarkProcess(2000000, 100000, 100, 100, 1, b)
+func BenchmarkBirdProcess100KUsers(b *testing.B) {
+	benchmarkBirdProcess(2000000, 100000, 100, 100, 1, b)
 }
 
-func BenchmarkProcess1MUsers(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 100, 1, b)
+func BenchmarkBirdProcess1MUsers(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 100, 1, b)
 }
 
 // Increase the numbers of draws to 100k with 1M users
-func BenchmarkProcess100Draws(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 100, 1, b)
+func BenchmarkBirdProcess100Draws(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 100, 1, b)
 }
 
-func BenchmarkProcess1KDraws(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 1000, 1, b)
+func BenchmarkBirdProcess1KDraws(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 1000, 1, b)
 }
 
-func BenchmarkProcess10KDraws(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 1, b)
+func BenchmarkBirdProcess10KDraws(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 1, b)
 }
 
-func BenchmarkProcess100KDraws(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 100000, 1, b)
+func BenchmarkBirdProcess100KDraws(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 100000, 1, b)
 }
 
 // Increase the depth up to 10 with 1M users and 10K draws
-func BenchmarkProcess1Depth(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 1, b)
+func BenchmarkBirdProcess1Depth(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 1, b)
 }
 
-func BenchmarkProcess2Depth(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 2, b)
+func BenchmarkBirdProcess2Depth(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 2, b)
 }
 
-func BenchmarkProcess3Depth(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 3, b)
+func BenchmarkBirdProcess3Depth(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 3, b)
 }
 
-func BenchmarkProcess4Depth(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 4, b)
+func BenchmarkBirdProcess4Depth(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 4, b)
 }
 
-func BenchmarkProcess5Depth(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 5, b)
+func BenchmarkBirdProcess5Depth(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 5, b)
 }
 
-func BenchmarkProcess10Depth(b *testing.B) {
-	benchmarkProcess(2000000, 1000000, 100, 10000, 10, b)
+func BenchmarkBirdProcess10Depth(b *testing.B) {
+	benchmarkBirdProcess(2000000, 1000000, 100, 10000, 10, b)
 }
