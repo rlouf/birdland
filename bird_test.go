@@ -99,7 +99,8 @@ func TestBirdInitialization(t *testing.T) {
 	}
 }
 
-func benchmarkBirdSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
+
+func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	query := make([]QueryItem, querySize)
 	for i := 0; i < querySize; i++ {
 		item := QueryItem{
@@ -113,10 +114,18 @@ func benchmarkBirdSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	for i := 0; i < numItems; i++ {
 		itemsWeights[i] = 10 * rand.Float64()
 	}
-	bird := Bird{
-		ItemWeights: itemsWeights,
-		RandSource:  rand.New(rand.NewSource(42)),
+
+	itemList := make([]int, numItems)
+	for i :=0; i < numItems; i++ {
+		itemList[i] = i
 	}
+	usersToItems := [][]int{itemList}
+
+	bird,err := NewBird(NewBirdCfg(), itemsWeights, usersToItems)
+	if err != nil {
+		b.Error("Unable to initialize SampleItemsFromQuery benchmark")
+	}  
+	bird.RandSource = rand.New(rand.NewSource(42))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
