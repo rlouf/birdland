@@ -100,7 +100,7 @@ func TestBirdInitialization(t *testing.T) {
 }
 
 
-func benchmarkSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
+func benchmarkBirdSampleItemsFromQuery(querySize, numItems int, b *testing.B) {
 	query := make([]QueryItem, querySize)
 	for i := 0; i < querySize; i++ {
 		item := QueryItem{
