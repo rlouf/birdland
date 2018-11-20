@@ -122,7 +122,7 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 
 	sampledItems := make([]int, b.Cfg.Draws)
 	for i, iid := range s.Sample(b.Cfg.Draws) {
-		if len(b.ItemsToUsers[iid]) == 0 {
+		if len(b.ItemsToUsers[items[iid]]) == 0 {
 			continue
 		}
 		sampledItems[i] = items[iid]
