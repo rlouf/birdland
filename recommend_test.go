@@ -43,6 +43,22 @@ var consensus_table = []ConsensusCase{
 	},
 }
 
+type TrustCase struct {
+	Name      string
+	Items     []int
+	Referrers []int
+	Expected  []int
+}
+
+var trust_table = []TrustCase{
+	{
+		Name:      "Typical input",
+		Items:     []int{1, 1, 1, 2, 5, 5, 5, 4},
+		Referrers: []int{1, 1, 1, 1, 2, 3, 4, 5},
+		Expected:  []int{1, 2, 5, 4},
+	},
+}
+
 func TestRecommendMostVisited(t *testing.T) {
 	for _, ex := range mostVisited_table {
 		recommended := RecommendMostVisited(ex.Input)
@@ -66,7 +82,22 @@ func TestRecommendConsensus(t *testing.T) {
 		}
 		for i, r := range recommended {
 			if r != ex.Expected[i] {
-				t.Errorf("RecommendMostVisited: %s: expected %d, got %d", ex.Name, ex.Expected, recommended)
+				t.Errorf("RecommendConsensus: %s: expected %d, got %d", ex.Name, ex.Expected, recommended)
+				break
+			}
+		}
+	}
+}
+
+func TestRecommendTrust(t *testing.T) {
+	for _, ex := range trust_table {
+		recommended := RecommendTrust(ex.Items, ex.Referrers)
+		if len(recommended) != len(ex.Expected) {
+			t.Errorf("RecommendTrust: %s: discrepancy in the length of the recommendations: expected %d, got %d", ex.Name, len(ex.Expected), len(recommended))
+		}
+		for i, r := range recommended {
+			if r != ex.Expected[i] {
+				t.Errorf("RecommendTrust: %s: expected %d, got %d", ex.Name, ex.Expected, recommended)
 				break
 			}
 		}

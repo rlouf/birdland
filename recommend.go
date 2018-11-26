@@ -76,3 +76,37 @@ func RecommendConsensus(items, referrers []int) []int {
 
 	return recommendedItems
 }
+
+// RecommendTrust recommends items based on how much we can trust their referrers.
+// The algorithm begins with attributing a weight to the refferers proportional to
+// the number of times it traversed them. The tracks are recommended by descending
+// order of the cumulated weights.
+func RecommendTrust(items, referrers []int) []int {
+
+	if len(items) != len(referrers) {
+		panic("items and referrers do not have the same number of elements")
+	}
+
+	countReferrerTraversals := make(map[int]int)
+	for _, referrer := range referrers {
+		countReferrerTraversals[referrer] += 1
+	}
+
+	itemWeights := make(map[int]int)
+	for i, item := range items {
+		itemWeights[item] += countReferrerTraversals[referrers[i]]
+	}
+
+	pairList := PairList{}
+	for item, count := range itemWeights {
+		pairList = append(pairList, Pair{item, count})
+	}
+
+	sort.Sort(sort.Reverse(pairList))
+	recommendedItems := make([]int, len(itemWeights))
+	for i, pair := range pairList {
+		recommendedItems[i] = pair.Object
+	}
+
+	return recommendedItems
+}
