@@ -1,6 +1,10 @@
-# Birdland
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rlouf/birdland/master/media/birdland.png?token=AA5UP5EFQWUPLZYDB3E2WYK46JAL2">
+</p>
 
-A famous Jazz club. Also a recommendation library. The library is composed of different elements.
+#
+
+Birdland is a famous Jazz club. It is also a recommendation library. The library is composed of different elements.
 
 **samplers**
 - `tower_sampler.go` implements the tower sampling algorithm to sample from a discrete distribution;
@@ -95,3 +99,8 @@ The algorithm is in fact very general; we can think of the following application
   users.
 - If the collection is a playlist, it is possible to recommend songs/artists based on their co-occurence in
   playlists. If the Item is a playlist and the collection a song, we can recommend similary playlists.
+  
+ 
+## Credits
+
+The icon was made by <a href="https://www.freepik.com/?__hstc=57440181.3c24109fd911bedc6428debe60ee2cde.1558556981649.1558556981649.1558556981649.1&__hssc=57440181.6.1558556981649&__hsfp=4016125896" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY
