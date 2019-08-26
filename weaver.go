@@ -2,11 +2,11 @@ package birdland
 
 import (
 	"github.com/pkg/errors"
-	"github.com/vimies/birdland/sampler"
+	"github.com/rlouf/birdland/sampler"
 )
 
 type Weaver struct {
-	SocialCoef        []map[int]float64
+	SocialCoef []map[int]float64
 	*Bird
 }
 
@@ -86,7 +86,7 @@ func (b *Weaver) socialStep(items []int, user int) ([]int, []int, error) {
 			for j, u := range relatedUsers {
 				if w, ok := b.SocialCoef[user][u]; ok {
 					weightedRelatedUsers[j] = w
-				} else{
+				} else {
 					weightedRelatedUsers[j] = 1.
 				}
 			}

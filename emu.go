@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/vimies/birdland/sampler"
+	"github.com/rlouf/birdland/sampler"
 )
 
 // NewEmu creates a new recommender from input data. Unlike Bird, the
