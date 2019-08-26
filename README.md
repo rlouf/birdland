@@ -16,14 +16,14 @@ recommended items.
 
 Birdland has some advantages over other collaborative filtering algorithms:
 
-- *It requires no pretraining.* 
+- *It requires no pretraining.*  
   Most collaborative algorithm come with hidden costs. Not only do
   you need to maintain an extra service and a database, you also need to
   solve an extra problem: the N-nearest-neighbour search. 
-- *It is fast.*
+- *It is fast.*  
   We achieved sub-millisecond performance on an API serving recommendation
   of millions of items for a million users.
-- *It is simple to reason about, thus to customize*
+- *It is simple to reason about, thus to customize*  
   To build `Bird`, the original algorithm, we started from the simple question:
   how would I look for new music to listen? Back in the LastFM days I would
   look for users who had listened to similar artists, what they've listened to
@@ -31,11 +31,11 @@ Birdland has some advantages over other collaborative filtering algorithms:
   that, but a million times faster than you would.
   There is something you do not like about this story? Well, you can adapt
   `Bird`, or use `Emu`.
-- *It generalizes to a social recommender.*
+- *It generalizes to a social recommender.*  
   `Weaver` uses the social network between users to inform recommendations.
-- *It solves the long-tail problem for a specific set of parameters.*
+- *It solves the long-tail problem for a specific set of parameters.*  
   Blog post to come. Now, whether this is desirable or not is another debate.
-- *It is ready for production as is.*
+- *It is ready for production as is.*  
   Birdland has been tested succesfully in production. Import `birdland` in the
   service that will implement the API that serves the recommendations, plug
   in the data and you're all set.
