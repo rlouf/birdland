@@ -9,7 +9,7 @@ type WeaverInitCase struct {
 	Name         string
 	ItemWeights  []float64
 	UsersToItems [][]int
-	SocialCoef   []map[int]float64
+	SocialGraph  []map[int]float64
 	Draws        int
 	Depth        int
 	Valid        bool
@@ -20,7 +20,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Zero Depth",
 		ItemWeights:  []float64{1, 1},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        0,
 		Draws:        1,
 		Valid:        false,
@@ -29,7 +29,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Negative Depth",
 		ItemWeights:  []float64{1, 1},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        -1,
 		Draws:        1,
 		Valid:        false,
@@ -38,7 +38,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Zero Draws",
 		ItemWeights:  []float64{1, 1},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        0,
 		Valid:        false,
@@ -47,7 +47,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Negative Draws",
 		ItemWeights:  []float64{1, 1},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        -1,
 		Valid:        false,
@@ -56,7 +56,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Empty ItemWeights",
 		ItemWeights:  []float64{},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
@@ -65,7 +65,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Empty UsersToItems",
 		ItemWeights:  []float64{1, 1},
 		UsersToItems: [][]int{},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
@@ -74,7 +74,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "More items in adjacency tables that weight list",
 		ItemWeights:  []float64{0.1, 0.2, 0.4},
 		UsersToItems: [][]int{[]int{0, 2}, []int{4}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
@@ -83,7 +83,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Negative social weight",
 		ItemWeights:  []float64{0.1, 0.4},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: -1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: -1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
@@ -92,7 +92,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Discrepancy in the number of users",
 		ItemWeights:  []float64{0.1, 0.2, 0.4},
 		UsersToItems: [][]int{[]int{0, 1}, []int{2}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
@@ -101,7 +101,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Undefined user in the social graph",
 		ItemWeights:  []float64{0.1, 0.2},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1:1., 2: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1., 2: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        false,
@@ -110,7 +110,7 @@ var weaverInitTable = []WeaverInitCase{
 		Name:         "Perfectly valid input",
 		ItemWeights:  []float64{1, 1},
 		UsersToItems: [][]int{[]int{0}, []int{1}},
-		SocialCoef:   []map[int]float64{{0: 1.}, {1: 1.}},
+		SocialGraph:  []map[int]float64{{0: 1.}, {1: 1.}},
 		Depth:        1,
 		Draws:        1,
 		Valid:        true,
@@ -123,7 +123,7 @@ func TestWeaverInitialization(t *testing.T) {
 		cfg.Depth = ex.Depth
 		cfg.Draws = ex.Draws
 
-		_, err := NewWeaver(cfg, ex.ItemWeights, ex.UsersToItems, ex.SocialCoef)
+		_, err := NewWeaver(cfg, ex.ItemWeights, ex.UsersToItems, ex.SocialGraph)
 		if err != nil && ex.Valid {
 			t.Errorf("Initialization: %s: Bird initialization should not have raised "+
 				"an error but did: %v", ex.Name, err)
@@ -158,15 +158,15 @@ func benchmarkWeaverStep(querySize, numUsers, numItems int, b *testing.B) {
 	} else {
 		numFriends = 100
 	}
-	socialCoef := make([]map[int]float64, numUsers)
+	socialGraph := make([]map[int]float64, numUsers)
 	for i := 0; i < numUsers; i++ {
-		socialCoef[i] = make(map[int]float64, 0)
+		socialGraph[i] = make(map[int]float64, 0)
 		for j := 0; j < numFriends; j++ {
-			socialCoef[i][j] = 10 * rand.Float64()
+			socialGraph[i][j] = 10 * rand.Float64()
 		}
 	}
 
-	weaver, err := NewWeaver(NewBirdCfg(), itemWeights, usersToItems, socialCoef)
+	weaver, err := NewWeaver(NewBirdCfg(), itemWeights, usersToItems, socialGraph)
 	if err != nil {
 		panic("BenchmarkWeaverStep: Weaver initialization raised an error " +
 			"but shouldn't have. Check your test case")
@@ -269,11 +269,11 @@ func benchmarkWeaverProcess(numItems, numUsers, querySize, draws, depth int, b *
 	} else {
 		numFriends = 100
 	}
-	socialCoef := make([]map[int]float64, numUsers)
+	socialGraph := make([]map[int]float64, numUsers)
 	for i := 0; i < numUsers; i++ {
-		socialCoef[i] = make(map[int]float64, 0)
+		socialGraph[i] = make(map[int]float64, 0)
 		for j := 0; j < numFriends; j++ {
-			socialCoef[i][j] = 10 * rand.Float64()
+			socialGraph[i][j] = 10 * rand.Float64()
 		}
 	}
 
@@ -281,7 +281,7 @@ func benchmarkWeaverProcess(numItems, numUsers, querySize, draws, depth int, b *
 	cfg.Depth = depth
 	cfg.Draws = draws
 
-	weaver, err := NewWeaver(cfg, itemWeights, usersToItems, socialCoef)
+	weaver, err := NewWeaver(cfg, itemWeights, usersToItems, socialGraph)
 	if err != nil {
 		panic("BenchmarkWeaverStep: Weaver initialization raised an error " +
 			"but shouldn't have. Check your test case")

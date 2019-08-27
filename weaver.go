@@ -1,12 +1,20 @@
 package birdland
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/rlouf/birdland/sampler"
 )
 
+// Weaver is a combination of a Bird, and a list of maps that represents
+// a weighted user-user matrix.
+// To avoid storing the full social graph, a mostly empty matrix, we store
+// for each user a map that associates each connection to a weight. Each
+// user that is not connected is attributed a DefaultWeight.
 type Weaver struct {
-	SocialCoef []map[int]float64
+	SocialGraph   []map[int]float64
+	DefaultWeight float64
 	*Bird
 }
 
@@ -14,9 +22,9 @@ type Weaver struct {
 // Unlike Bird, users related to an item are not sampled uniformly, but according to socialCoef[user],
 // making the recommendation dependent on both the query and the user being served.
 func NewWeaver(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int,
-	socialCoef []map[int]float64) (*Weaver, error) {
+	socialGraph []map[int]float64) (*Weaver, error) {
 
-	err := validateWeaverInputs(itemWeights, usersToItems, socialCoef)
+	err := validateWeaverInputs(itemWeights, usersToItems, socialGraph)
 	if err != nil {
 		return &Weaver{}, errors.Wrap(err, "invalid input")
 	}
@@ -27,7 +35,8 @@ func NewWeaver(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int,
 	}
 
 	b := Weaver{
-		socialCoef,
+		socialGraph,
+		1.0,
 		bird,
 	}
 
@@ -38,12 +47,12 @@ func NewWeaver(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int,
 // along with the users that referred these items.
 func (b *Weaver) SocialProcess(query []QueryItem, user int) ([]int, []int, error) {
 	if len(query) == 0 {
-		return nil, nil, errors.New("empty query")
+		return nil, nil, errors.New("the input query is empty")
 	}
 
 	stepItems, err := b.sampleItemsFromQuery(query)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "cannot sample items")
+		return nil, nil, errors.Wrap(err, "cannot sample items from the query")
 	}
 
 	var items []int
@@ -65,8 +74,8 @@ func (b *Weaver) SocialProcess(query []QueryItem, user int) ([]int, []int, error
 // users that were visited to reach these items.
 func (b *Weaver) socialStep(items []int, user int) ([]int, []int, error) {
 
-	if user >= len(b.SocialCoef) {
-		return nil, nil, errors.New("the user does not belong to the social graph")
+	if user >= len(b.SocialGraph) {
+		return nil, nil, fmt.Errorf("user %d does not belong to the social graph", user)
 	}
 
 	referrers := make([]int, len(items))
@@ -84,16 +93,16 @@ func (b *Weaver) socialStep(items []int, user int) ([]int, []int, error) {
 		if _, ok := itemUserSamplers[item]; !ok {
 			weightedRelatedUsers := make([]float64, len(relatedUsers))
 			for j, u := range relatedUsers {
-				if w, ok := b.SocialCoef[user][u]; ok {
+				if w, ok := b.SocialGraph[user][u]; ok {
 					weightedRelatedUsers[j] = w
 				} else {
-					weightedRelatedUsers[j] = 1.
+					weightedRelatedUsers[j] = b.DefaultWeight
 				}
 			}
 			itemUserSampler, err := sampler.NewAliasSampler(b.RandSource, weightedRelatedUsers)
 			itemUserSamplers[item] = itemUserSampler
 			if err != nil {
-				return nil, nil, errors.Wrapf(err, "couldn't initialize users' sampler for user %d and item %d", user, item)
+				return nil, nil, errors.Wrapf(err, "could not initialize users' sampler for user %d and item %d", user, item)
 			}
 		}
 		referrers[i] = relatedUsers[itemUserSamplers[item].Sample(1)[0]]
@@ -110,7 +119,7 @@ func (b *Weaver) socialStep(items []int, user int) ([]int, []int, error) {
 // validateWeaverInput checks the validity of the data fed to Weaver.  It returns
 // an error when it identifies a discrepancy that could make the processing
 // algorithm crash.
-func validateWeaverInputs(itemWeights []float64, usersToItems [][]int, socialCoef []map[int]float64) error {
+func validateWeaverInputs(itemWeights []float64, usersToItems [][]int, socialGraph []map[int]float64) error {
 
 	if len(itemWeights) == 0 {
 		return errors.New("empty slice of item weights")
@@ -130,27 +139,27 @@ func validateWeaverInputs(itemWeights []float64, usersToItems [][]int, socialCoe
 		}
 	}
 	if numItems <= m {
-		return errors.New("there are more items in UsersToItems than there are weights")
+		return fmt.Errorf("there are more items (%d) in UsersToItems than there are weights (%d)", m, numItems)
 	}
 
-	if len(socialCoef) != len(usersToItems) {
+	if len(socialGraph) != len(usersToItems) {
 		return errors.New("UsersToItems and the social graph don't contain the same number of users")
 	}
 
-	numUsers := len(socialCoef)
+	numUsers := len(socialGraph)
 	m = 0
-	for _, friendsCoef := range socialCoef {
+	for _, friendsCoef := range socialGraph {
 		for user, w := range friendsCoef {
 			if user > m {
 				m = user
 			}
 			if w < 0 {
-				return errors.New("negative weight in the social graph")
+				return errors.New("weights in the social graph must be positive")
 			}
 		}
 	}
 	if numUsers <= m {
-		return errors.New("there are undefined users in the social graph")
+		return errors.New("some users mentioned in the connections are otherwise absent from the graph")
 	}
 
 	return nil
