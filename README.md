@@ -4,6 +4,8 @@
 
 #
 
+[![CircleCI](https://circleci.com/gh/rlouf/birdland.svg?style=svg)](https://circleci.com/gh/rlouf/birdland)
+
 Birdland is a famous Jazz club. It is also a recommendation library.
 
 Birdland is a collaborative filtering algorithm in two steps: exploration and

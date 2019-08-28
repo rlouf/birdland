@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: golang:alpine
+    working_directory: /go/src/github.com/rlouf/birdland
+    environment:
+      TERM: dumb
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk update && apk add curl git build-base bash
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+      - run:
+          name: Vet
+          command: make vet
+      - run:
+          name: Test
+          command: make test
