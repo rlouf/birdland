@@ -20,7 +20,7 @@ Birdland has some advantages over other collaborative filtering algorithms:
   solve an additional problem: find the [N nearest neighbors](https://en.wikipedia.org/wiki/Nearest_neighbor_search) 
   of a vector (spoiler: it is not an easy problem). 
 - *It is fast.*  
-  We achieved sub-millisecond performance on an API serving recommendation
+  We achieved performance of the order of the millisecond on an API serving recommendation
   of millions of items for a million users.
 - *It is simple to reason about, thus to customize.*  
   To build `Bird` we started from the simple question: how would I look for new
@@ -76,8 +76,8 @@ adjacency table:
 package main
 import "github.com/rlouf/birdland"
 
-artistWeights := make([]float64, numArtists} // global weight attributed to each artist
-usersToArtists := make([][]int) // for each user the list of artists they listened to (liked, followed, etc.)
+artistWeights := make([]float64, numArtists) // global weight attributed to each artist
+usersToArtists := make([][]int, numUsers) // for each user the list of artists they listened to (liked, followed, etc.)
 cfg := NewBirdCfg()
 
 bird, err := birdland.NewBird(cfg, artistWeights, usersToArtists)
@@ -120,8 +120,8 @@ the user played tracks from an artist.
 package main
 import "github.com/rlouf/birdland"
 
-artistWeights := make([]float64, numArtists}
-usersToWeightedArtists := make([]map[int]float64)
+artistWeights := make([]float64, numArtists)
+usersToWeightedArtists := make([]map[int]float64, numUsers)
 cfg := NewBirdCfg() // Default of 1000 draws and depth 1
 
 emu, err := birdland.NewEmu(cfg, artistWeights, usersToWeightedArtists)
@@ -141,9 +141,10 @@ weigh recommendations by strangers and by acquaintances the same way.
 package main
 import "github.com/rlouf/birdland"
 
-cfg := NewBirdCfg{}
+cfg := NewWeaverCfg()
 itemWeights := make([]float64, numItems)
-usersToItems := make([][]int)
+usersToItems := make([][]int, numUsers)
+
 weaver, err := birdland.NewWeaver(cfg, itemWeights, usersToItems, socialGraph) 
 ```
 
@@ -151,7 +152,7 @@ We give to users who are not connected to the current user a default weight of 1
 This default behavior can be changed by initializing the configuration by hand:
 
 ```golang
-cfg := WeaverCfg{DefaultWeight: 0}
+cfg := WeaverCfg{DefaultWeight: 0, BirdCfg: NewBirdCfg()}
 ```
 
 which would only consider recommendations coming from direct connections.

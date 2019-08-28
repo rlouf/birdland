@@ -119,7 +119,7 @@ var weaverInitTable = []WeaverInitCase{
 
 func TestWeaverInitialization(t *testing.T) {
 	for _, ex := range weaverInitTable {
-		cfg := NewBirdCfg()
+		cfg := NewWeaverCfg()
 		cfg.Depth = ex.Depth
 		cfg.Draws = ex.Draws
 
@@ -166,7 +166,7 @@ func benchmarkWeaverStep(querySize, numUsers, numItems int, b *testing.B) {
 		}
 	}
 
-	weaver, err := NewWeaver(NewBirdCfg(), itemWeights, usersToItems, socialGraph)
+	weaver, err := NewWeaver(NewWeaverCfg(), itemWeights, usersToItems, socialGraph)
 	if err != nil {
 		panic("BenchmarkWeaverStep: Weaver initialization raised an error " +
 			"but shouldn't have. Check your test case")
@@ -180,7 +180,7 @@ func benchmarkWeaverStep(querySize, numUsers, numItems int, b *testing.B) {
 	user := rand.Intn(numUsers)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _, _ = weaver.socialStep(query, user)
+		_, _, _ = weaver.step(query, user)
 	}
 }
 
@@ -277,7 +277,7 @@ func benchmarkWeaverProcess(numItems, numUsers, querySize, draws, depth int, b *
 		}
 	}
 
-	cfg := NewBirdCfg()
+	cfg := NewWeaverCfg()
 	cfg.Depth = depth
 	cfg.Draws = draws
 
@@ -296,7 +296,7 @@ func benchmarkWeaverProcess(numItems, numUsers, querySize, draws, depth int, b *
 	user := rand.Intn(numUsers)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _, _ = weaver.SocialProcess(query, user)
+		_, _, _ = weaver.Process(query, user)
 	}
 }
 

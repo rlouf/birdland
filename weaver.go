@@ -7,21 +7,35 @@ import (
 	"github.com/rlouf/birdland/sampler"
 )
 
+type WeaverCfg struct {
+	DefaultWeight float64 `json:"default_weight"`
+	*BirdCfg
+}
+
+func NewWeaverCfg() *WeaverCfg {
+	cfg := WeaverCfg{
+		DefaultWeight: 1,
+		BirdCfg:       NewBirdCfg(),
+	}
+
+	return &cfg
+}
+
 // Weaver is a combination of a Bird, and a list of maps that represents
 // a weighted user-user matrix.
 // To avoid storing the full social graph, a mostly empty matrix, we store
 // for each user a map that associates each connection to a weight. Each
 // user that is not connected is attributed a DefaultWeight.
 type Weaver struct {
-	SocialGraph   []map[int]float64
-	DefaultWeight float64
+	Cfg         *WeaverCfg
+	SocialGraph []map[int]float64
 	*Bird
 }
 
 // NewWeaver creates a new recommender from input data.
 // Unlike Bird, users related to an item are not sampled uniformly, but according to socialCoef[user],
 // making the recommendation dependent on both the query and the user being served.
-func NewWeaver(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int,
+func NewWeaver(cfg *WeaverCfg, itemWeights []float64, usersToItems [][]int,
 	socialGraph []map[int]float64) (*Weaver, error) {
 
 	err := validateWeaverInputs(itemWeights, usersToItems, socialGraph)
@@ -29,23 +43,23 @@ func NewWeaver(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int,
 		return &Weaver{}, errors.Wrap(err, "invalid input")
 	}
 
-	bird, err := NewBird(cfg, itemWeights, usersToItems)
+	bird, err := NewBird(cfg.BirdCfg, itemWeights, usersToItems)
 	if err != nil {
 		return &Weaver{}, errors.Wrap(err, "couldn't create new bird")
 	}
 
 	b := Weaver{
+		cfg,
 		socialGraph,
-		1.0,
 		bird,
 	}
 
 	return &b, nil
 }
 
-// SocialProcess returns a slice of items that were visited during the random walks
+// Process returns a slice of items that were visited during the random walks
 // along with the users that referred these items.
-func (b *Weaver) SocialProcess(query []QueryItem, user int) ([]int, []int, error) {
+func (b *Weaver) Process(query []QueryItem, user int) ([]int, []int, error) {
 	if len(query) == 0 {
 		return nil, nil, errors.New("the input query is empty")
 	}
@@ -58,7 +72,7 @@ func (b *Weaver) SocialProcess(query []QueryItem, user int) ([]int, []int, error
 	var items []int
 	var referrers []int
 	for d := 0; d < b.Cfg.Depth; d++ {
-		stepItems, stepReferrers, err := b.socialStep(stepItems, user)
+		stepItems, stepReferrers, err := b.step(stepItems, user)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "cannot step through items")
 		}
@@ -69,10 +83,10 @@ func (b *Weaver) SocialProcess(query []QueryItem, user int) ([]int, []int, error
 	return items, referrers, nil
 }
 
-// socialStep performs one random walk step for each incoming item.
-// socialStep returns a slice of visited items along with the 'referrers', i.e. the
+// step performs one random walk step for each incoming item.
+// it returns a slice of visited items along with the 'referrers', i.e. the
 // users that were visited to reach these items.
-func (b *Weaver) socialStep(items []int, user int) ([]int, []int, error) {
+func (b *Weaver) step(items []int, user int) ([]int, []int, error) {
 
 	if user >= len(b.SocialGraph) {
 		return nil, nil, fmt.Errorf("user %d does not belong to the social graph", user)
@@ -96,7 +110,7 @@ func (b *Weaver) socialStep(items []int, user int) ([]int, []int, error) {
 				if w, ok := b.SocialGraph[user][u]; ok {
 					weightedRelatedUsers[j] = w
 				} else {
-					weightedRelatedUsers[j] = b.DefaultWeight
+					weightedRelatedUsers[j] = b.Cfg.DefaultWeight
 				}
 			}
 			itemUserSampler, err := sampler.NewAliasSampler(b.RandSource, weightedRelatedUsers)
