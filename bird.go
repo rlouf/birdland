@@ -1,6 +1,7 @@
 package birdland
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 
 type QueryItem struct {
 	Item   int
-	Weight float64
+	Weight float64 // for instance number of past interactions with the item
 }
 
 type BirdCfg struct {
@@ -27,23 +28,25 @@ func NewBirdCfg() *BirdCfg {
 	return &cfg
 }
 
+// Bird is a recommendation engine that performs random walks on the
+// user-item bipartite graph.
 type Bird struct {
 	Cfg               *BirdCfg
-	ItemWeights       []float64
-	UsersToItems      [][]int
-	ItemsToUsers      [][]int
-	UserItemsSamplers []sampler.AliasSampler
+	ItemWeights       []float64              // global weight attributed to items
+	UsersToItems      [][]int                // user-item adjacency matrix
+	ItemsToUsers      [][]int                // item-user adjacency matrix
+	UserItemsSamplers []sampler.AliasSampler // samplers to randomly draw items from a user's collection
 	RandSource        *rand.Rand
 }
 
 // NewBird creates a new recommender from input data.
 func NewBird(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int) (*Bird, error) {
 	if cfg.Depth < 1 {
-		return nil, errors.New("depth must be greater or equal to 1")
+		return nil, errors.New("the depth must be greater than or equal to 1")
 	}
 
 	if cfg.Draws < 1 {
-		return nil, errors.New("number of draws must be greater or equal to 1")
+		return nil, errors.New("the number of draws must be greater than or equal to 1")
 	}
 
 	randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -58,6 +61,7 @@ func NewBird(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int) (*Bird, 
 		return &Bird{}, errors.Wrap(err, "cannot initialize samplers")
 	}
 
+	// we sacrifice memory for speed by storing the two complementary adjacency lists.
 	itemsToUsers := permuteAdjacencyList(len(itemWeights), usersToItems)
 
 	b := Bird{
@@ -72,8 +76,9 @@ func NewBird(cfg *BirdCfg, itemWeights []float64, usersToItems [][]int) (*Bird, 
 	return &b, nil
 }
 
-// Process returns a slice of items that were visited during the random walks
-// along with the users that referred these items.
+// Process randomly samples items from the query and performs random walks
+// starting from them. Returns a list of items and a list of
+// users who referred this item in the walk.
 func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	if len(query) == 0 {
 		return nil, nil, errors.New("empty query")
@@ -98,15 +103,10 @@ func (b *Bird) Process(query []QueryItem) ([]int, []int, error) {
 	return items, referrers, nil
 }
 
-// sampleItemsFromQuery takes a slice of query items and samples b.Cfg.Draws
-// items from it. Each item i is assigned a weight Q_i in the query---the
-// number of listens, likes, shares, etc. The weight W_i used for
-// sampleItemFromQuery is the product of Q_i with the item's weight I_i
-// provided when Bird is initialized.
-//
-// sampleItemsFromQuery returns a slice of items that are the starting points
-// of the subsequent random walks. If the query refers to an item that has no
-// record in ItemsToUsers, the item is ignored.
+// sampleItemsFromQuery returns a slice of items that will be the starting
+// points of the subsequent random walks. If the query refers to an item that
+// has no record in ItemsToUsers (i.e. no one has interacted with it), the item
+// is ignored.
 func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 
 	weights := make([]float64, len(query))
@@ -129,23 +129,23 @@ func (b *Bird) sampleItemsFromQuery(query []QueryItem) ([]int, error) {
 	}
 
 	if len(sampledItems) == 0 {
-		return nil, errors.New("no items left after sampling," +
+		return nil, errors.New("no items were sampled," +
 			"check that the query refers to actual items.")
 	}
 
 	return sampledItems, nil
 }
 
-// step performs one random walk step for each incoming item.
-// step returns a slice of visited items along with the 'referrers', i.e. the
-// users that were visited to reach these items.
+// step performs one random walk step for each incoming item. It returns a
+// slice of visited items along with the 'referrers', i.e. the users that were
+// visited to reach these items.
 func (b *Bird) step(items []int) ([]int, []int, error) {
 
 	referrers := make([]int, len(items))
 	for i, item := range items {
 		relatedUsers := b.ItemsToUsers[item]
 		if len(relatedUsers) == 0 {
-			return nil, nil, errors.New("the item refers to an item no one has interacted with")
+			return nil, nil, fmt.Errorf("cannot perform step: no one has interacted with item %d", item)
 		}
 		referrers[i] = relatedUsers[b.RandSource.Intn(len(relatedUsers))]
 	}
@@ -158,7 +158,7 @@ func (b *Bird) step(items []int) ([]int, []int, error) {
 	return newItems, referrers, nil
 }
 
-// sampleItem returns an item sampled from a user's collection.
+// sampleItem samples one item from a user's collection.
 func (b *Bird) sampleItem(user int) int {
 	s := b.UserItemsSamplers[user]
 	sampledItem := b.UsersToItems[user][s.Sample(1)[0]]
@@ -166,9 +166,9 @@ func (b *Bird) sampleItem(user int) int {
 	return sampledItem
 }
 
-// initUserItemsSamplers initializes the samplers used to sample from a user's
-// item collection. We use the alias sampling method which has proven sensibly
-// better in benchmarks.
+// initUserItemsSamplers initializes the samplers that are used to sample from
+// a user's items collection (one sampler per user). We use the alias sampling
+// method which has proven sensibly better in benchmarks.
 func initUserItemsSamplers(randSource *rand.Rand,
 	itemWeights []float64,
 	userToItems [][]int) ([]sampler.AliasSampler, error) {
@@ -215,14 +215,14 @@ func validateBirdInputs(itemWeights []float64, usersToItems [][]int) error {
 		}
 	}
 	if numItems <= m {
-		return errors.New("there are more items in UsersToItems than there are weights")
+		return errors.New("UsersToItems references more items itemWeights")
 	}
 
 	return nil
 }
 
-// permuteAdjacencyList transforms the UsersToItems adjacency list into the complementary
-// ItemsToUsers adjacency list.
+// permuteAdjacencyList transforms the UsersToItems adjacency list into the
+// complementary ItemsToUsers adjacency list.
 func permuteAdjacencyList(numItems int, usersToItems [][]int) [][]int {
 
 	itemsToUsers := make([][]int, numItems)
